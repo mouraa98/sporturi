@@ -1,0 +1,364 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos globais */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212; /* Fundo escuro moderno */
+    color: #e0e0e0; /* Texto claro */
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-size: 14px; /* Tamanho base da fonte */
+}
+
+/* Cabeçalho */
+header {
+    background-color: #1f2937; /* Azul escuro moderno */
+    color: #ffffff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+header .logo img {
+    height: 50px; /* Tamanho reduzido */
+    /*filter: brightness(0) invert(1); /* Logo branca */
+}
+
+header nav .admin-button {
+    padding: 8px 16px; /* Tamanho reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+header nav .admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1f2937; /* Azul escuro moderno */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+h1, h2, h3 {
+    color: #ffffff; /* Branco */
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+h1 {
+    font-size: 1.8rem; /* Tamanho reduzido */
+}
+
+h2 {
+    font-size: 1.5rem; /* Tamanho reduzido */
+}
+
+h3 {
+    font-size: 1.2rem; /* Tamanho reduzido */
+}
+
+/* Tabela responsiva */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2d3748; /* Azul mais claro */
+    min-width: 600px;
+}
+
+th, td {
+    padding: 10px; /* Espaçamento reduzido */
+    text-align: left;
+    border: 1px solid #1f2937; /* Bordas azuis mais escuras */
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+th {
+    background-color: #1f2937; /* Azul escuro */
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Cores para as posições na tabela */
+tr.position-1 {
+    background-color: #10b981; /* Verde vibrante para o primeiro lugar */
+    color: #fff;
+}
+
+tr.position-2 {
+    background-color: #3b82f6; /* Azul vibrante para o segundo lugar */
+    color: #fff;
+}
+
+tr.position-3 {
+    background-color: #f59e0b; /* Laranja vibrante para o terceiro lugar */
+    color: #fff;
+}
+
+tr.position-4 {
+    background-color: #4b5563; /* Cinza para o quarto lugar */
+    color: #fff;
+}
+
+tr.position-5 {
+    background-color: #4b5563; /* Cinza para o quinto lugar */
+    color: #fff;
+}
+
+tr:hover {
+    background-color: #374151; /* Azul mais claro ao passar o mouse */
+    transition: background-color 0.3s ease;
+}
+
+/* Formulários */
+form {
+    margin-bottom: 20px;
+    background-color: #2d3748; /* Azul mais claro */
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ffffff; /* Branco */
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+input, select {
+    width: 100%;
+    padding: 10px; /* Espaçamento reduzido */
+    margin-bottom: 12px;
+    border: 1px solid #1f2937; /* Bordas azuis mais escuras */
+    border-radius: 8px;
+    font-size: 0.9rem; /* Fonte menor */
+    background-color: #1f2937; /* Azul escuro */
+    color: #e0e0e0; /* Texto claro */
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #3b82f6; /* Azul vibrante ao focar */
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 10px; /* Espaçamento reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem; /* Fonte menor */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+
+.admin-button {
+    display: inline-block;
+    padding: 8px 16px; /* Tamanho reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+
+.delete-button {
+    background-color: #ef4444; /* Vermelho vibrante */
+}
+
+.delete-button:hover {
+    background-color: #dc2626; /* Vermelho mais escuro */
+}
+
+/* Rodapé */
+footer {
+    background-color: #1f2937; /* Azul escuro moderno */
+    color: #ffffff;
+    text-align: center;
+    padding: 15px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+/* Mensagens de sucesso e erro */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 280px; /* Largura reduzida */
+    font-size: 0.9rem; /* Fonte menor */
+    animation: fadeIn 0.3s ease;
+}
+
+.popup.success {
+    background-color: #10b981; /* Verde vibrante */
+    color: #fff;
+}
+
+.popup.error {
+    background-color: #ef4444; /* Vermelho vibrante */
+    color: #fff;
+}
+
+.popup button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem; /* Fonte menor */
+}
+/* Estilo do botão de instalar app */
+.install-app-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff; /* Texto branco */
+    border: none;
+    border-radius: 8px; /* Bordas arredondadas */
+    cursor: pointer;
+    font-size: 14px; /* Tamanho da fonte */
+    font-weight: 600; /* Peso da fonte */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
+    z-index: 1000; /* Garante que o botão fique acima de outros elementos */
+}
+
+.install-app-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px); /* Levanta o botão */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Sombra mais intensa */
+}
+
+.install-app-button:active {
+    transform: translateY(0); /* Volta à posição original */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Volta à sombra original */
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    header .logo img {
+        margin-bottom: 0;
+    }
+
+    header nav .admin-button {
+        padding: 8px 16px;
+        font-size: 0.8rem; /* Fonte menor */
+    }
+
+    h1 {
+        font-size: 1.5rem; /* Tamanho reduzido */
+    }
+
+    h2 {
+        font-size: 1.3rem; /* Tamanho reduzido */
+    }
+
+    table, th, td {
+        font-size: 0.8rem; /* Fonte menor */
+    }
+
+    input, button {
+        font-size: 0.8rem; /* Fonte menor */
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.3rem; /* Tamanho reduzido */
+    }
+
+    h2 {
+        font-size: 1.1rem; /* Tamanho reduzido */
+    }
+
+    table, th, td {
+        font-size: 0.75rem; /* Fonte menor */
+    }
+
+    input, button {
+        font-size: 0.75rem; /* Fonte menor */
+    }
+
+    header nav .admin-button {
+        padding: 6px 12px;
+        font-size: 0.8rem; /* Fonte menor */
+    }
+}

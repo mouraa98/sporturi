@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SporTuri</title>
+    
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png"  alt="Logo do Campeonato" ></a>
+        </div>
+        <nav>
+             <!-- Botão para ver a agenda de jogos -->
+             <a href="/agenda" class="admin-button" style="margin-bottom: 20px;">
+                <i class="fas fa-calendar-alt"></i> Ver Jogos
+            </a>
+            <a href="/login" class="admin-button"><i class="fa-solid fa-user-lock"></i> Login</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h2><i class="fa-solid fa-trophy"></i> Campeonatos</h2>
+
+            <% if (campeonatos.length === 0) { %>
+                <div class="empty-message">
+                    <p style = 'font-size:12px'><i class="fa-solid fa-circle-exclamation"></i> Nenhum campeonato encontrado.</p>
+                </div>
+            <% } else { %>
+                <% campeonatos.forEach((campeonato) => { %>
+                    <div class="campeonato">
+                        <h2><i class="fa-solid fa-futbol"></i> <%= campeonato.nome %></h2>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO</th>
+                                        <th><i class="fa-solid fa-shield-halved"></i> Time</th>
+                                        <th><i class="fa-solid fa-star"></i> P</th>
+                                        <th><i class="fa-solid fa-futbol"></i> J</th>
+                                        <th><i class="fa-solid fa-trophy"></i> V</th>
+                                        <th><i class="fa-solid fa-handshake"></i> E</th>
+                                        <th><i class="fa-solid fa-times"></i> D</th>
+                                        <th><i class="fa-solid fa-futbol"></i> GM</th>
+                                        <th><i class="fa-solid fa-skull"></i> GS</th>
+                                        <th><i class="fa-solid fa-calculator"></i> SG</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% const classificacao = calcularClassificacao(campeonato.times); %>
+                                    <% classificacao.forEach((time, index) => { %>
+                                        <tr class="position-<%= index + 1 %>">
+                                            <td><i class="fa-solid fa-hashtag"></i> <%= index + 1 %></td>
+                                            <td><%= time.nome %></td>
+                                            <td><%= time.pontos %></td>
+                                            <td><%= time.jogos %></td>
+                                            <td><%= time.vitorias %></td>
+                                            <td><%= time.empates %></td>
+                                            <td><%= time.derrotas %></td>
+                                            <td><%= time.golsMarcados %></td>
+                                            <td><%= time.golsSofridos %></td>
+                                            <td><%= time.saldoGols %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Falha ao registrar o Service Worker:', error);
+                    });
+            });
+        }
+
+        let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+
+    // Cria o botão de instalação
+    const installButton = document.createElement('button');
+    installButton.innerHTML = '<i class="fa-solid fa-download"></i> Instalar App';
+    
+    // Adiciona uma classe ao botão para facilitar a estilização
+    installButton.classList.add('install-app-button');
+
+    // Adiciona o botão ao corpo da página
+    document.body.appendChild(installButton);
+
+    // Evento de clique no botão
+    installButton.addEventListener('click', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('Usuário aceitou a instalação');
+            } else {
+                console.log('Usuário recusou a instalação');
+            }
+            deferredPrompt = null;
+        });
+    });
+});
+    </script>
+</body>
+</html>

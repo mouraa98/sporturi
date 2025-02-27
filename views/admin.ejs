@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png"  alt="Logo do Campeonato" ></a>
+        </div>
+        <nav>
+            <a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>MASTER</h1>
+
+            <!-- Formulário para criar usuários -->
+            <h2><i class="fas fa-user-plus"></i> Criar Usuário</h2>
+            <form action="/admin/users/create" method="POST">
+                <label for="username">Usuário:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit"><i class="fas fa-plus"></i> Criar Usuário</button>
+            </form>
+
+            <!-- Formulário para adicionar campeonatos -->
+            <h2><i class="fas fa-trophy"></i> Adicionar Campeonato</h2>
+            <form action="/admin/campeonatos/add" method="POST">
+                <label for="nome">Nome do Campeonato:</label>
+                <input type="text" id="nome" name="nome" required>
+                <label for="responsavel">Responsável:</label>
+                <select id="responsavel" name="responsavel" required>
+                    <% users.forEach(user => { %>
+                        <option value="<%= user.username %>"><%= user.username %></option>
+                    <% }) %>
+                </select>
+                <button type="submit"><i class="fas fa-plus"></i> Adicionar Campeonato</button>
+            </form>
+
+            <!-- Formulário para gerar tokens -->
+            <h2><i class="fas fa-key"></i> Gerar Token de Acesso</h2>
+            <form action="/admin/api-keys/create" method="POST">
+                <button type="submit"><i class="fas fa-plus"></i> Gerar Novo Token</button>
+            </form>
+
+            <!-- Lista de tokens ativos -->
+            <h2><i class="fas fa-key"></i> Tokens Ativos</h2>
+            <ul>
+                <% tokens.forEach(token => { %>
+                    <li>
+                        <%= token %>
+                        <form action="/admin/api-keys/revoke" method="POST">
+                            <input type="hidden" name="token" value="<%= token %>">
+                            <button type="submit"><i class="fas fa-trash"></i> Excluir</button>
+                        </form>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <!-- Lista de campeonatos -->
+            <h2><i class="fas fa-trophy"></i> Campeonatos</h2>
+            <% campeonatos.forEach((campeonato, id) => { %>
+                <div class="campeonato">
+                    <h3><%= campeonato.nome %></h3>
+                    <p>Responsável: <%= campeonato.responsavel %></p>
+                    <form action="/admin/campeonatos/delete/<%= id %>" method="POST">
+                        <button type="submit"><i class="fas fa-trash"></i> Excluir Campeonato</button>
+                    </form>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

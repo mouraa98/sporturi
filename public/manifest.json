@@ -1,0 +1,21 @@
+{
+  "short_name": "SportTuri",
+  "name": "SportTuri",
+  "icons": [
+    {
+      "src": "/assets/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#1e1e1e",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#2c3e50"
+}
