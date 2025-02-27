@@ -9,7 +9,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json'); // Importa o arquivo de especificação
 const os = require('os');
 const app = express();
-const port = 80;
+const port = 8000;
 
 // Configura o diretório de views
 app.set('views', path.join(__dirname, 'views'));
