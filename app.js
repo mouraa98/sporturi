@@ -21,10 +21,14 @@ app.use(express.static('public')); // Serve arquivos estáticos do diretório pu
 
 // Configuração de sessão
 app.use(session({
-    secret: 'segredo',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
+    secret: 'segredo', // Chave secreta para assinar o cookie da sessão
+    resave: false, // Evita regravar a sessão se nada mudar
+    saveUninitialized: true, // Salva sessões não inicializadas
+    cookie: {
+        secure: false, // Defina como true apenas se estiver usando HTTPS
+        maxAge: 1000 * 60 * 60 * 24, // Tempo de vida do cookie (1 dia)
+        httpOnly: true // Impede que o cookie seja acessado via JavaScript no navegador
+    }
 }));
 
 // Caminho dos arquivos JSON
@@ -32,6 +36,7 @@ const usersFilePath = path.join(__dirname, 'data', 'users.json');
 const campeonatosFilePath = path.join(__dirname, 'data', 'campeonatos.json');
 const tokensFilePath = path.join(__dirname, 'data', 'tokens.json');
 const agendamentosFilePath = path.join(__dirname, 'data', 'agendamentos.json');
+const accessDataFilePath = path.join(__dirname, 'data', 'accessData.json'); // Adicionado
 
 // Função para ler dados de um arquivo JSON
 function readJSONFile(filePath) {
@@ -45,6 +50,20 @@ function readJSONFile(filePath) {
 // Função para escrever dados em um arquivo JSON
 function writeJSONFile(filePath, data) {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+// Função para ler os dados de acesso
+function readAccessData() {
+    if (!fs.existsSync(accessDataFilePath)) {
+        fs.writeFileSync(accessDataFilePath, JSON.stringify({ home: 0, agenda: 0 }));
+    }
+    return JSON.parse(fs.readFileSync(accessDataFilePath, 'utf-8'));
+}
+// Função para atualizar os dados de acesso
+function updateAccessData(route) {
+    const accessData = readAccessData();
+    accessData[route]++;
+    fs.writeFileSync(accessDataFilePath, JSON.stringify(accessData, null, 2));
 }
 
 // Dados do superusuário
@@ -72,6 +91,30 @@ function calcularClassificacao(times) {
         return time;
     }).sort((a, b) => b.pontos - a.pontos || b.saldoGols - a.saldoGols);
 }
+
+// Middleware para contar acessos à rota "/"
+app.get('/', (req, res, next) => {
+    // Atualiza os dados de acesso sem interferir na sessão
+    const accessData = readAccessData();
+    accessData.home++;
+    writeJSONFile(accessDataFilePath, accessData);
+    next();
+});
+
+// Middleware para contar acessos à rota "/agenda"
+app.get('/agenda', (req, res, next) => {
+    // Atualiza os dados de acesso sem interferir na sessão
+    const accessData = readAccessData();
+    accessData.agenda++;
+    writeJSONFile(accessDataFilePath, accessData);
+    next();
+});
+
+// Reinicia a contagem diariamente à meia-noite
+cron.schedule('0 0 * * *', () => {
+    fs.writeFileSync(accessDataFilePath, JSON.stringify({ home: 0, agenda: 0 }));
+    console.log('Contagem de acessos reiniciada.');
+});
 
 // Middleware para verificar autenticação
 const isAuthenticated = (req, res, next) => {
@@ -161,7 +204,7 @@ app.post('/login', (req, res) => {
     // Verifica se é o superusuário
     if (username === superuser.username && password === superuser.password) {
         req.session.username = username;
-        return res.redirect('/admin'); // Redireciona para a página de admin
+        return res.redirect('/admin/master'); // Redireciona para a página de admin
     }
 
     // Verifica se é um usuário comum
@@ -187,16 +230,7 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.get('/admin', isAuthenticated, isSuperuser, (req, res) => {
-    res.render('admin', { campeonatos, users, tokens });
-});
 
-app.post('/admin/users/create', isAuthenticated, isSuperuser, (req, res) => {
-    const { username, password } = req.body;
-    users.push({ username, password });
-    writeJSONFile(usersFilePath, users);
-    res.redirect('/admin');
-});
 
 app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
     const { nome, responsavel } = req.body;
@@ -214,7 +248,7 @@ app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
     }
 
     writeJSONFile(campeonatosFilePath, campeonatos);
-    res.redirect('/admin');
+    res.redirect('/admin/campeonatos');
 });
 
 app.post('/admin/campeonatos/delete/:id', isAuthenticated, isSuperuser, (req, res) => {
@@ -236,7 +270,7 @@ app.post('/admin/campeonatos/delete/:id', isAuthenticated, isSuperuser, (req, re
 
         writeJSONFile(campeonatosFilePath, campeonatos);
         writeJSONFile(usersFilePath, users);
-        res.redirect('/admin');
+        res.redirect('/admin/campeonatos');
     } else {
         res.status(404).send('Campeonato não encontrado.');
     }
@@ -295,7 +329,7 @@ app.post('/admin/api-keys/create', isAuthenticated, isSuperuser, (req, res) => {
     const token = generateToken();
     tokens.push(token);
     writeJSONFile(tokensFilePath, tokens);
-    res.redirect('/admin');
+    res.redirect('/admin/tokens');
 });
 
 app.post('/admin/api-keys/revoke', isAuthenticated, isSuperuser, (req, res) => {
@@ -305,7 +339,7 @@ app.post('/admin/api-keys/revoke', isAuthenticated, isSuperuser, (req, res) => {
         tokens.splice(index, 1);
         writeJSONFile(tokensFilePath, tokens);
     }
-    res.redirect('/admin');
+    res.redirect('/admin/tokens');
 });
 
 app.get('/user/campeonatos/:id/edit-time/:timeIndex', isAuthenticated, (req, res) => {
@@ -679,6 +713,205 @@ app.post('/api/login', (req, res) => {
     // Se não encontrou o usuário
     res.status(401).json({ error: 'Usuário ou senha incorretos.' });
 });
+app.get('/admin', (req, res) => {
+    const page = req.query.page || 'master'; // Pega o parâmetro 'page' da URL ou define 'master' como padrão
+
+    // Dados fictícios para exemplo
+    const users = [{ username: 'admin' }, { username: 'user1' }];
+    const tokens = ['token1', 'token2'];
+    const campeonatos = [
+        { nome: 'Campeonato 1', responsavel: 'admin' },
+        { nome: 'Campeonato 2', responsavel: 'user1' }
+    ];
+
+    // Adicionando o objeto accessData
+    const accessData = {
+        home: 120, // Exemplo de dado (número de acessos à página home)
+        agenda: 80 // Exemplo de dado (número de acessos à página agenda)
+    };
+
+    // Renderiza o template admin.ejs com os dados correspondentes
+    res.render('admin', {
+        page, // Passa a página atual para o template
+        users,
+        tokens,
+        campeonatos,
+        accessData // Passa o objeto accessData para o template
+    });
+});
+
+// Rota para a página Master
+app.get('/admin/master', isAuthenticated, isSuperuser, (req, res) => {
+    const accessData = readAccessData(); // Lê os dados de acesso
+    console.log('Dados de acesso:', accessData); // Adicione este log para depuração
+
+    res.render('admin', {
+        page: 'master',
+        users,
+        tokens,
+        campeonatos,
+        accessData // Passa os dados de acesso para o template
+    });
+});
+
+// Rota para a página Adicionar Campeonato
+app.get('/admin/adicionar-campeonato', isAuthenticated, isSuperuser, (req, res) => {
+    res.render('admin', {
+        page: 'adicionar-campeonato', // Define a página atual
+        users,
+        tokens,
+        campeonatos
+    });
+});
+
+// Rota para a página Tokens
+app.get('/admin/tokens', isAuthenticated, isSuperuser, (req, res) => {
+    res.render('admin', {
+        page: 'tokens', // Define a página atual
+        users,
+        tokens,
+        campeonatos
+    });
+});
+
+// Rota para a página Campeonatos
+app.get('/admin/campeonatos', isAuthenticated, isSuperuser, (req, res) => {
+    res.render('admin', {
+        page: 'campeonatos', // Define a página atual
+        users,
+        tokens,
+        campeonatos
+    });
+});
+
+// Rota para a página Usuários
+app.get('/admin/usuarios', isAuthenticated, isSuperuser, (req, res) => {
+    // Lê o arquivo users.json novamente
+    const users = readJSONFile(usersFilePath);
+
+    res.render('admin', {
+        page: 'usuarios', // Define a página atual
+        users, // Passa os usuários para o template
+        tokens: readJSONFile(tokensFilePath), // Carrega os tokens
+        campeonatos: readJSONFile(campeonatosFilePath) // Carrega os campeonatos
+    });
+});
+
+app.get('/admin/master', (req, res) => {
+    // Caminho para o arquivo JSON
+    const dataPath = path.join(__dirname, 'data', 'acessData.json');
+
+    // Lê o arquivo JSON
+    fs.readFile(dataPath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Erro ao ler o arquivo JSON:', err);
+            return res.status(500).send('Erro ao carregar os dados de acesso.');
+        }
+
+        // Converte o JSON para um objeto JavaScript
+        const accessData = JSON.parse(data);
+
+        // Renderiza o template admin.ejs com os dados
+        res.render('admin', {
+            page: 'master', // Define a página como 'master'
+            accessData: accessData // Passa os dados de acesso para o template
+        });
+    });
+});
+
+
+
+// Rota para renderizar a página de edição do usuário
+app.get('/admin/users/edit/:id', isAuthenticated, isSuperuser, (req, res) => {
+    const userId = req.params.id; // Pega o ID do usuário da URL
+    console.log('ID do usuário:', userId); // Log para depuração
+
+    // Busca o usuário no arquivo JSON
+    const users = readJSONFile(usersFilePath);
+    const user = users.find(u => u.id === parseInt(userId));
+
+    if (!user) {
+        console.log('Usuário não encontrado no arquivo JSON.'); // Log para depuração
+        return res.status(404).send('Usuário não encontrado');
+    }
+
+    console.log('Usuário encontrado:', user); // Log para depuração
+
+    // Renderiza a página de edição com os dados do usuário
+    res.render('edit-user', { user });
+});
+
+// Rota para atualizar o usuário
+app.post('/admin/users/update/:id', isAuthenticated, isSuperuser, (req, res) => {
+    const userId = req.params.id; // Pega o ID do usuário da URL
+    const { username, password } = req.body; // Pega os dados do formulário
+
+    // Busca o usuário no arquivo JSON
+    const users = readJSONFile(usersFilePath);
+    const userIndex = users.findIndex(u => u.id === parseInt(userId));
+
+    if (userIndex === -1) {
+        return res.status(404).send('Usuário não encontrado');
+    }
+
+    // Atualiza os dados do usuário
+    users[userIndex].username = username;
+    if (password) {
+        users[userIndex].password = password; // Atualiza a senha apenas se for fornecida
+    }
+
+    // Salva as alterações no arquivo JSON
+    writeJSONFile(usersFilePath, users);
+
+    // Redireciona para a lista de usuários
+    res.redirect('/admin/usuarios');
+});
+
+// Rota para criar um novo usuário
+app.post('/admin/users/create', isAuthenticated, isSuperuser, (req, res) => {
+    const { username, password } = req.body;
+
+    // Lê o arquivo users.json novamente
+    const users = readJSONFile(usersFilePath);
+
+    // Gera um ID único para o novo usuário
+    const newUserId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
+
+    // Adiciona o novo usuário com um ID único
+    users.push({ id: newUserId, username, password });
+
+    // Salva as alterações no arquivo JSON
+    writeJSONFile(usersFilePath, users);
+
+    // Redireciona para a lista de usuários
+    res.redirect('/admin/usuarios');
+});
+
+// Rota para deletar um usuário
+app.post('/admin/users/delete/:id', isAuthenticated, isSuperuser, (req, res) => {
+    const userId = parseInt(req.params.id); // Converte o ID para número
+
+    // Lê o arquivo users.json novamente
+    const users = readJSONFile(usersFilePath);
+
+    // Busca o índice do usuário no array
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+    }
+
+    // Remove o usuário do array
+    users.splice(userIndex, 1);
+
+    // Salva as alterações no arquivo JSON
+    writeJSONFile(usersFilePath, users);
+
+    // Retorna uma resposta JSON
+    res.json({ success: true });
+});
+
+
 
 function getLocalIP() {
     const interfaces = os.networkInterfaces();

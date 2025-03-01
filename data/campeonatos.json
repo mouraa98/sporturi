@@ -2,16 +2,6 @@
   {
     "nome": "COPA DA BR",
     "responsavel": "jackson",
-    "times": [
-      {
-        "nome": "FLAMENGO",
-        "vitorias": 1,
-        "jogos": 6,
-        "empates": 7,
-        "derrotas": 6,
-        "golsMarcados": 4,
-        "golsSofridos": 7
-      }
-    ]
+    "times": []
   }
 ]
