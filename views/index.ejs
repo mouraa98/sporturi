@@ -6,6 +6,7 @@
     <title>SporTuri</title>
     
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/index.css"> <!-- Novo arquivo CSS -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2c3e50">
     
@@ -32,60 +33,59 @@
     <div class="main-content">
         <div class="container">
             <h2><i class="fa-solid fa-trophy"></i> Campeonatos</h2>
-
+    
+            <!-- Barra de pesquisa -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Pesquisar campeonato..." />
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+    
             <% if (campeonatos.length === 0) { %>
                 <div class="empty-message">
-                    <p style = 'font-size:12px'><i class="fa-solid fa-circle-exclamation"></i> Nenhum campeonato encontrado.</p>
+                    <p style='font-size:12px'><i class="fa-solid fa-circle-exclamation"></i> Nenhum campeonato encontrado.</p>
                 </div>
             <% } else { %>
-                <% campeonatos.forEach((campeonato) => { %>
-                    <div class="campeonato">
-                        <h2><i class="fa-solid fa-futbol"></i> <%= campeonato.nome %></h2>
-
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO</th>
-                                        <th><i class="fa-solid fa-shield-halved"></i> Time</th>
-                                        <th><i class="fa-solid fa-star"></i> P</th>
-                                        <th><i class="fa-solid fa-futbol"></i> J</th>
-                                        <th><i class="fa-solid fa-trophy"></i> V</th>
-                                        <th><i class="fa-solid fa-handshake"></i> E</th>
-                                        <th><i class="fa-solid fa-times"></i> D</th>
-                                        <th><i class="fa-solid fa-futbol"></i> GM</th>
-                                        <th><i class="fa-solid fa-skull"></i> GS</th>
-                                        <th><i class="fa-solid fa-calculator"></i> SG</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% const classificacao = calcularClassificacao(campeonato.times); %>
-                                    <% classificacao.forEach((time, index) => { %>
-                                        <tr class="position-<%= index + 1 %>">
-                                            <td><i class="fa-solid fa-hashtag"></i> <%= index + 1 %></td>
-                                            <td><%= time.nome %></td>
-                                            <td><%= time.pontos %></td>
-                                            <td><%= time.jogos %></td>
-                                            <td><%= time.vitorias %></td>
-                                            <td><%= time.empates %></td>
-                                            <td><%= time.derrotas %></td>
-                                            <td><%= time.golsMarcados %></td>
-                                            <td><%= time.golsSofridos %></td>
-                                            <td><%= time.saldoGols %></td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                <% }) %>
+                <ul class="campeonato-list" id="campeonatoList">
+                    <% campeonatos.forEach((campeonato) => { %>
+                        <li class="campeonato-item">
+                            <a href="/campeonato/<%= campeonato.nome %>">
+                                <i class="fa-solid fa-futbol"></i> <%= campeonato.nome %>
+                            </a>
+                        </li>
+                    <% }) %>
+                </ul>
             <% } %>
+        </div>
+    </div>
         </div>
     </div>
 
     <footer>
         <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const campeonatoList = document.getElementById('campeonatoList');
+            const campeonatoItems = campeonatoList.getElementsByClassName('campeonato-item');
+    
+            searchInput.addEventListener('input', function () {
+                const searchTerm = searchInput.value.toLowerCase();
+    
+                // Percorre todos os itens da lista de campeonatos
+                Array.from(campeonatoItems).forEach(function (item) {
+                    const campeonatoName = item.textContent.toLowerCase();
+    
+                    // Mostra ou esconde o item com base no termo de pesquisa
+                    if (campeonatoName.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         if ('serviceWorker' in navigator) {

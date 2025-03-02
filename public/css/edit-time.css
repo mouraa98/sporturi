@@ -1,0 +1,114 @@
+/* edit-time.css */
+
+/* Estilo para o contêiner principal */
+.container {
+    max-width: 800px; /* Largura máxima do formulário */
+    width: 90%; /* Mantém uma largura adequada em telas pequenas */
+    margin: auto; /* Centraliza horizontalmente */
+    padding: 20px;
+    background-color: #1f2937; /* Azul escuro moderno */
+    border-radius: 12px; /* Bordas arredondadas */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Sombra suave */
+    
+    /* Ajuste para ocupar a tela toda */
+    min-height: 100vh; /* Ocupa a altura total da tela */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza verticalmente */
+}
+
+/* Estilo para o título */
+h1 {
+    color: #ffffff; /* Texto branco */
+    text-align: center; /* Centraliza o título */
+    margin-bottom: 20px; /* Espaçamento inferior */
+}
+
+/* Estilo para as linhas do formulário */
+.form-row {
+    display: flex; /* Ativa o Flexbox */
+    gap: 20px; /* Espaçamento entre os campos */
+    margin-bottom: 15px; /* Espaçamento entre as linhas */
+}
+
+/* Estilo para cada grupo de campos */
+.form-group {
+    flex: 1; /* Faz com que os campos ocupem o mesmo espaço */
+}
+
+/* Estilo para os labels */
+label {
+    display: block; /* Faz o label ocupar a linha inteira */
+    margin-bottom: 8px; /* Espaçamento inferior */
+    color: #ffffff; /* Texto branco */
+    font-weight: 600; /* Peso da fonte */
+    font-size: 1rem; /* Tamanho da fonte */
+}
+
+/* Estilo para os inputs */
+input[type="text"],
+input[type="number"] {
+    width: 100%; /* Ocupa 100% da largura do contêiner */
+    padding: 12px; /* Espaçamento interno */
+    border: 1px solid #374151; /* Bordas azuis mais claras */
+    border-radius: 8px; /* Bordas arredondadas */
+    background-color: #2d3748; /* Azul mais claro */
+    color: #e0e0e0; /* Texto claro */
+    font-size: 1rem; /* Tamanho da fonte */
+    transition: border-color 0.3s ease; /* Transição suave */
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+    border-color: #3b82f6; /* Azul vibrante ao focar */
+    outline: none; /* Remove o contorno padrão */
+}
+
+/* Estilo para o botão de enviar */
+button {
+    width: 100%; /* Ocupa 100% da largura */
+    padding: 12px 24px; /* Espaçamento interno */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff; /* Texto branco */
+    border: none; /* Remove a borda */
+    border-radius: 8px; /* Bordas arredondadas */
+    font-size: 1rem; /* Tamanho da fonte */
+    cursor: pointer; /* Cursor de ponteiro */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
+}
+
+button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px); /* Efeito de levantar */
+}
+
+/* Estilo para o botão "Voltar" */
+.admin-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff; /* Texto branco */
+    text-decoration: none; /* Remove sublinhado */
+    border-radius: 8px; /* Bordas arredondadas */
+    margin-top: 20px; /* Espaçamento superior */
+    font-size: 1rem; /* Tamanho da fonte */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
+}
+
+.admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px); /* Efeito de levantar */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column; /* Coloca os campos em coluna em telas pequenas */
+        gap: 10px; /* Reduz o espaçamento entre os campos */
+    }
+
+    .container {
+        width: 95%; /* Maior aproveitamento da tela */
+        padding: 15px; /* Reduz o padding em telas pequenas */
+    }
+}

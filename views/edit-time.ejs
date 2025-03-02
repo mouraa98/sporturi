@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Time</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/edit-time.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -13,21 +14,52 @@
     <div class="container">
         <h1>Editar Time</h1>
         <form action="/user/campeonatos/<%= campeonatoId %>/update-time/<%= timeIndex %>" method="POST">
-            <label for="nome">Nome do Time:</label>
-            <input type="text" id="nome" name="nome" value="<%= time.nome %>" required>
-            <label for="vitorias">Vitórias:</label>
-            <input type="number" id="vitorias" name="vitorias" value="<%= time.vitorias %>" required>
-            <label for="jogos">Jogos:</label>
-            <input type="number" id="jogos" name="jogos" value="<%= time.jogos %>" required>
-            <label for="empates">Empates:</label>
-            <input type="number" id="empates" name="empates" value="<%= time.empates %>" required>
-            <label for="derrotas">Derrotas:</label>
-            <input type="number" id="derrotas" name="derrotas" value="<%= time.derrotas %>" required>
-            <label for="golsMarcados">Gols Marcados:</label>
-            <input type="number" id="golsMarcados" name="golsMarcados" value="<%= time.golsMarcados %>" required>
-            <label for="golsSofridos">Gols Sofridos:</label>
-            <input type="number" id="golsSofridos" name="golsSofridos" value="<%= time.golsSofridos %>" required>
-            <button type="submit"><i class="fas fa-save"></i> Atualizar Time</button>
+            <!-- Nome do Time -->
+            <div class="form-group">
+                <label for="nome">Nome do Time:</label>
+                <input type="text" id="nome" name="nome" value="<%= time.nome %>" required>
+            </div>
+
+            <!-- Linha 1: Vitórias e Jogos -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="vitorias">Vitórias:</label>
+                    <input type="number" id="vitorias" name="vitorias" value="<%= time.vitorias %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="jogos">Jogos:</label>
+                    <input type="number" id="jogos" name="jogos" value="<%= time.jogos %>" required>
+                </div>
+            </div>
+
+            <!-- Linha 2: Empates e Derrotas -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="empates">Empates:</label>
+                    <input type="number" id="empates" name="empates" value="<%= time.empates %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="derrotas">Derrotas:</label>
+                    <input type="number" id="derrotas" name="derrotas" value="<%= time.derrotas %>" required>
+                </div>
+            </div>
+
+            <!-- Linha 3: Gols Marcados e Gols Sofridos -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="golsMarcados">Gols Marcados:</label>
+                    <input type="number" id="golsMarcados" name="golsMarcados" value="<%= time.golsMarcados %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="golsSofridos">Gols Sofridos:</label>
+                    <input type="number" id="golsSofridos" name="golsSofridos" value="<%= time.golsSofridos %>" required>
+                </div>
+            </div>
+
+            <!-- Botão de enviar -->
+            <div class="form-group">
+                <button type="submit"><i class="fas fa-save"></i> Atualizar Time</button>
+            </div>
         </form>
         <a href="/user" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar</a>
     </div>

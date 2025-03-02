@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Agendamento</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/editar-agenda.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
        <!-- Favicon -->
        <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -54,6 +55,9 @@
 
                 <label for="time2">Nome do Time 2:</label>
                 <input type="text" id="time2" name="time2" value="<%= agendamento.time2 %>" required>
+
+                <label for="camp">Campeonato:</label>
+                <input type="text" id="camp" name="camp" value="<%= agendamento.camp %>" required>
 
                 <label for="data">Data:</label>
                 <input type="date" id="data" name="data" value="<%= agendamento.data %>" required>

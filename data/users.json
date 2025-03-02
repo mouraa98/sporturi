@@ -4,12 +4,14 @@
     "username": "jackson",
     "password": "al0901",
     "campeonatos": [
-      0
-    ]
+      0,
+      1
+    ],
+    "agendas": []
   },
   {
     "id": 2,
-    "username": "Teste",
-    "password": "teste"
+    "username": "teste",
+    "password": "tttt"
   }
 ]

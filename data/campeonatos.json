@@ -1,6 +1,192 @@
 [
   {
-    "nome": "COPA DA BR",
+    "nome": "BRASILEIRÃO SERIE A",
+    "responsavel": "jackson",
+    "times": [
+      {
+        "nome": "Atlético-MG",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Bahia",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Botafogo",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Bragantino",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Ceará",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Corinthians",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Cruzeiro",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Flamengo",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Fluminense",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Fortaleza",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Grêmio",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Internacional",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Juventude",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Mirassol",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Palmeiras",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Santos",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Sport",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "São Paulo",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Vasco",
+        "vitorias": 0,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      },
+      {
+        "nome": "Vitória",
+        "vitorias": 1,
+        "jogos": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "golsMarcados": 0,
+        "golsSofridos": 0
+      }
+    ]
+  },
+  {
+    "nome": "teste",
     "responsavel": "jackson",
     "times": []
   }

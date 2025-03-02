@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/assets/favicon.png">
 </head>
@@ -95,6 +96,7 @@
                     <input type="text" id="nome" name="nome" required>
                     <label for="responsavel">Responsável:</label>
                     <select id="responsavel" name="responsavel" required>
+                        <% console.log('Usuários no template:', users); %> <!-- Log para depuração -->
                         <% users.forEach(user => { %>
                             <option value="<%= user.username %>"><%= user.username %></option>
                         <% }) %>
@@ -141,7 +143,7 @@
                         <h3><%= campeonato.nome %></h3>
                         <p>Responsável: <%= campeonato.responsavel %></p>
                         <form action="/admin/campeonatos/delete/<%= id %>" method="POST">
-                            <button type="submit"><i class="fas fa-trash"></i> Excluir Campeonato</button>
+                            <button ><i class="fas fa-trash"></i> Excluir Campeonato</button>
                         </form>
                     </div>
                 <% }) %>
@@ -287,6 +289,12 @@
         menuToggle.classList.toggle('active');
     });
 });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        updateUserList(); // Atualiza a lista de usuários ao carregar a página
+    });
 </script>
     
 </body>
