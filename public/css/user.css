@@ -85,3 +85,94 @@ button:hover {
     transform: translateY(-2px);
 }
 
+/* Estilos para a lista de campeonatos */
+.campeonato-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.campeonato-item {
+    background-color: #2d3748;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.campeonato-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+}
+
+.campeonato-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.campeonato-header i {
+    transition: transform 0.3s ease;
+}
+
+.campeonato-content {
+    display: none;
+    padding: 15px;
+    border-top: 1px solid #1f2937;
+}
+
+/* Estilos para ícones */
+i {
+    margin-right: 8px; /* Espaçamento entre ícones e texto */
+}
+
+/* Ajustes para ícones no cabeçalho da tabela */
+th i {
+    margin-right: 5px;
+}
+
+/* Ajustes para ícones no formulário */
+form label i {
+    margin-right: 5px;
+}
+
+/* Ajustes para ícones no rodapé */
+footer i {
+    margin-right: 5px;
+}
+
+/* Estilos para a lista de campeonatos */
+.campeonato-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.campeonato-item {
+    background-color: #2d3748;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.campeonato-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+}
+
+.campeonato-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.campeonato-header i {
+    transition: transform 0.3s ease;
+}
+
+.campeonato-content {
+    display: none;
+    padding: 15px;
+    border-top: 1px solid #1f2937;
+}

@@ -25,9 +25,11 @@
         <div class="container">
             
             
-            <h1>Jogos</h1> 
-            <div class="pesquisa-container">
-            <input type="text" id="pesquisa" placeholder="🔍 Buscar por time ou campeonato...">
+            <h1><i class="fa-solid fa-futbol"></i> Jogos</h1> 
+           <!-- Barra de pesquisa -->
+           <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Pesquisar jogos..." onkeyup="filtrarJogos()">
+            <i class="fas fa-search"></i>
         </div>
 
             <% if (agenda && agenda.length > 0) { %>
@@ -69,25 +71,83 @@
     </div>
 
     <footer>
-        <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
     </footer>
-
     <script>
-        document.getElementById("pesquisa").addEventListener("input", function () {
-            let termo = this.value.toLowerCase();
-            document.querySelectorAll(".jogo-card").forEach(card => {
-                let time1 = card.querySelector(".time:first-child").textContent.toLowerCase();
-                let time2 = card.querySelector(".time:last-child").textContent.toLowerCase();
-                let campeonato = card.closest(".campeonato").querySelector("h2").textContent.toLowerCase();
+        async function carregarResultados() {
+            try {
+                let response = await fetch('/api/resultados');
+                let resultados = await response.json();
     
-                if (time1.includes(termo) || time2.includes(termo) || campeonato.includes(termo)) {
+                // Variável para rastrear se algum campeonato possui resultados
+                let campeonatosComResultado = false;
+    
+                document.querySelectorAll(".jogo-card").forEach(card => {
+                    let jogoId = card.getAttribute("data-jogo-id");
+    
+                    let resultado = resultados.find(r => r.jogoId === jogoId);
+                    if (resultado) {
+                        let resultadoSpan = card.querySelector(".resultado");
+                        let versusSpan = card.querySelector(".versus");
+    
+                        resultadoSpan.textContent = `${resultado.resultado1} X ${resultado.resultado2}`;
+                        resultadoSpan.style.display = "inline";
+                        versusSpan.style.display = "none";
+    
+                        // Marca que o campeonato com esse jogo tem resultado
+                        campeonatosComResultado = true;
+                    }
+                });
+    
+                // Se algum campeonato tem resultados, esconde campeonatos sem resultados
+                if (campeonatosComResultado) {
+                    esconderCampeonatosSemResultado();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar resultados:", error);
+            }
+        }
+    
+        // Função para esconder campeonatos que não possuem resultados visíveis
+        function esconderCampeonatosSemResultado() {
+            const campeonatos = document.querySelectorAll(".campeonato-item");
+    
+            campeonatos.forEach(campeonato => {
+                let jogos = campeonato.querySelectorAll(".jogo-card");
+                let algumResultadoExibido = false;
+    
+                jogos.forEach(card => {
+                    const resultadoSpan = card.querySelector(".resultado");
+                    if (resultadoSpan && resultadoSpan.style.display === "inline") {
+                        algumResultadoExibido = true;
+                    }
+                });
+    
+                // Esconde o campeonato se nenhum jogo tiver resultado
+                if (!algumResultadoExibido) {
+                    campeonato.style.display = "none";
+                }
+            });
+        }
+    
+        function filtrarJogos() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let jogos = document.querySelectorAll(".jogo-card");
+    
+            jogos.forEach(card => {
+                let times = card.innerText.toLowerCase();
+                if (times.includes(input)) {
                     card.style.display = "block";
                 } else {
                     card.style.display = "none";
                 }
             });
-        });
+        }
+    
+        document.addEventListener("DOMContentLoaded", carregarResultados);
     </script>
+    
+    
     
 
     <script>
@@ -148,10 +208,6 @@
             }
         });
     </script>
-    
-    
-    
-    
     
 </body>
 </html>

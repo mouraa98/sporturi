@@ -6,12 +6,28 @@ const fs = require('fs');
 const crypto = require('crypto');
 const cron = require('node-cron');
 const swaggerUi = require('swagger-ui-express');
+const flash = require('connect-flash');
 const swaggerDocument = require('./swagger.json'); // Importa o arquivo de especificação
 const os = require('os');
 const app = express();
 const port = 8000;
 
 const cronJobs = {}; // Objeto para armazenar tarefas agendadas
+
+app.use(session({
+    secret: 'seu-segredo-aqui', // Defina um segredo para a sessão
+    resave: false,
+    saveUninitialized: true
+}));
+
+app.use(flash()); // Habilita o uso do flash
+
+
+app.set('view cache', false);  // Desabilita o cache de views
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store'); // Não armazena no cache
+    next();
+});
 
 
 // Configura o diretório de views
@@ -41,6 +57,7 @@ const tokensFilePath = path.join(__dirname, 'data', 'tokens.json');
 const agendamentosFilePath = path.join(__dirname, 'data', 'agendamentos.json');
 const accessDataFilePath = path.join(__dirname, 'data', 'accessData.json'); // Adicionado
 
+
 // Função para ler dados de um arquivo JSON
 function readJSONFile(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -49,6 +66,17 @@ function readJSONFile(filePath) {
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
 }
+// Função para escrever dados em um arquivo JSON
+function readJSONFile(filePath) {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        return JSON.parse(data); // Retorna os dados no formato JSON
+    } catch (error) {
+        console.error(`Erro ao ler o arquivo ${filePath}:`, error);
+        return [];
+    }
+}
+
 
 // Função para escrever dados em um arquivo JSON
 function writeJSONFile(filePath, data) {
@@ -276,10 +304,12 @@ app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
     let users = readJSONFile(usersFilePath);
     let campeonatos = readJSONFile(campeonatosFilePath);
 
-    // Cria o novo campeonato
-    const novoCampeonato = { nome, responsavel, times: [] };
+    // Cria o novo campeonato com um campo 'id' explícito
+    const campeonatoId = campeonatos.length; // O ID será o tamanho do array, garantindo unicidade
+    const novoCampeonato = { id: campeonatoId, nome, responsavel, times: [] };
+
+    // Adiciona o campeonato à lista de campeonatos
     campeonatos.push(novoCampeonato);
-    const campeonatoId = campeonatos.length - 1;
 
     // Associa o campeonato ao usuário responsável
     const userIndex = users.findIndex(u => u.username === responsavel);
@@ -450,6 +480,15 @@ app.post('/user/campeonatos/:id/delete-time/:timeIndex', isAuthenticated, (req, 
 app.get('/user/agenda', isAuthenticated, (req, res) => {
     const username = req.session.username;
 
+
+ // Caminho dos arquivos JSON
+    const campeonatosFilePath = './data/campeonatos.json';  // Caminho do arquivo de campeonatos
+    const agendamentosFilePath = './data/agendamentos.json';  // Caminho do arquivo de agendamentos
+    
+
+    // Lê o arquivo campeonatos.json
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
     // Busca as agendas do usuário
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
@@ -466,12 +505,15 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
         }).filter(a => a !== undefined);
     }
 
-    // Busca os campeonatos do usuário
-    const userCampeonatoIds = user.campeonatos || [];
-    const userCampeonatos = userCampeonatoIds
-        .map(id => campeonatos[id])
-        .filter(campeonato => campeonato !== undefined);
+    
 
+ // Busca os campeonatos do usuário
+ const userCampeonatoIds = user.campeonatos || [];  // IDs de campeonatos do usuário
+ const userCampeonatos = userCampeonatoIds
+     .map(id => campeonatos.find(campeonato => campeonato.id === id)) // Busca pelo id do campeonato
+     .filter(campeonato => campeonato !== undefined);  // Filtra campeonatos que não existirem
+
+        
     // Passa as variáveis success e error para o template
     const success = req.session.success || null;
     const error = req.session.error || null;
@@ -485,6 +527,8 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
         error
     });
 });
+
+
 // Rota para adicionar um jogo à agenda do usuário
 app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
     const { logo1, time1, logo2, time2, camp, data, hora, local } = req.body;
@@ -493,7 +537,9 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
     if (!logo1 || !time1 || !logo2 || !time2 || !camp || !data || !hora || !local) {
         req.session.error = 'Preencha todos os campos corretamente.';
     } else {
+        const agendamentos = readJSONFile(agendamentosFilePath);
         const novoJogo = { 
+            id: agendamentos.length, // O ID é o índice atual do array, iniciando de 0
             logo1, 
             time1, 
             logo2, 
@@ -506,9 +552,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
         };
 
         // Adiciona o novo jogo ao arquivo de agendamentos
-        const agendamentos = readJSONFile(agendamentosFilePath);
         agendamentos.push(novoJogo);
-        const agendaId = agendamentos.length - 1; // ID da nova agenda
         writeJSONFile(agendamentosFilePath, agendamentos);
 
         // Adiciona o ID da agenda ao usuário responsável
@@ -518,7 +562,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
             if (!users[userIndex].agendas) {
                 users[userIndex].agendas = []; // Inicializa o campo agendas se não existir
             }
-            users[userIndex].agendas.push(agendaId); // Adiciona o ID da agenda
+            users[userIndex].agendas.push(novoJogo.id); // Adiciona o ID da agenda
             writeJSONFile(usersFilePath, users);
         }
 
@@ -527,7 +571,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
         const cronExpression = `${dataHoraJogo.getMinutes()} ${dataHoraJogo.getHours()} ${dataHoraJogo.getDate()} ${dataHoraJogo.getMonth() + 1} *`;
 
         cron.schedule(cronExpression, () => {
-            removerAgendamento(agendaId); // Remove o agendamento e o índice do usuário
+            removerAgendamento(novoJogo.id); // Remove o agendamento com o ID
             console.log(`Jogo removido: ${time1} vs ${time2} em ${data} ${hora}`);
         });
 
@@ -537,14 +581,13 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
     res.redirect('/user/agenda');
 });
 
-// Rota para exibir a página de edição de um agendamento
+// Rota para editar agendamento
 app.get('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const username = req.session.username;
 
-    console.log(`Tentativa de editar agendamento com ID: ${id}`); // Log para depuração
+    console.log(`Tentativa de editar agendamento com ID: ${id}`);
 
-    // Verifica se o usuário tem permissão para editar a agenda
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
 
@@ -553,14 +596,25 @@ app.get('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
         const agendamento = agendamentos[id];
 
         if (agendamento) {
-            console.log('Agendamento encontrado:', agendamento); // Log para depuração
-            res.render('editar-agenda', { agendamento, id });
+            console.log('Agendamento encontrado:', agendamento);
+
+            const campeonatos = readJSONFile(campeonatosFilePath);
+            const userCampeonatos = campeonatos.filter(campeonato => user.campeonatos.includes(campeonato.id));
+
+            // Passando o id do agendamento para a view
+            res.render('editar-agenda', {
+                campeonatos: userCampeonatos,
+                agendamento: agendamento,
+                id: id,  // Passando o id para a view
+                success: req.flash('success'),
+                error: req.flash('error')
+            });
         } else {
-            console.log('Agendamento não encontrado.'); // Log para depuração
+            console.log('Agendamento não encontrado.');
             res.status(404).send('Agendamento não encontrado.');
         }
     } else {
-        console.log('Acesso negado: usuário não tem permissão.'); // Log para depuração
+        console.log('Acesso negado: usuário não tem permissão.');
         res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
     }
 });

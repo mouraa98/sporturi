@@ -5,13 +5,11 @@
     "password": "al0901",
     "campeonatos": [
       0,
-      1
+      1,
+      2,
+      3,
+      4
     ],
     "agendas": []
-  },
-  {
-    "id": 2,
-    "username": "teste",
-    "password": "tttt"
   }
 ]

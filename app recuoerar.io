@@ -6,10 +6,29 @@ const fs = require('fs');
 const crypto = require('crypto');
 const cron = require('node-cron');
 const swaggerUi = require('swagger-ui-express');
+const flash = require('connect-flash');
 const swaggerDocument = require('./swagger.json'); // Importa o arquivo de especificação
 const os = require('os');
 const app = express();
 const port = 8000;
+
+const cronJobs = {}; // Objeto para armazenar tarefas agendadas
+
+app.use(session({
+    secret: 'seu-segredo-aqui', // Defina um segredo para a sessão
+    resave: false,
+    saveUninitialized: true
+}));
+
+app.use(flash()); // Habilita o uso do flash
+
+
+app.set('view cache', false);  // Desabilita o cache de views
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store'); // Não armazena no cache
+    next();
+});
+
 
 // Configura o diretório de views
 app.set('views', path.join(__dirname, 'views'));
@@ -38,6 +57,7 @@ const tokensFilePath = path.join(__dirname, 'data', 'tokens.json');
 const agendamentosFilePath = path.join(__dirname, 'data', 'agendamentos.json');
 const accessDataFilePath = path.join(__dirname, 'data', 'accessData.json'); // Adicionado
 
+
 // Função para ler dados de um arquivo JSON
 function readJSONFile(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -46,6 +66,17 @@ function readJSONFile(filePath) {
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
 }
+// Função para escrever dados em um arquivo JSON
+function readJSONFile(filePath) {
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        return JSON.parse(data); // Retorna os dados no formato JSON
+    } catch (error) {
+        console.error(`Erro ao ler o arquivo ${filePath}:`, error);
+        return [];
+    }
+}
+
 
 // Função para escrever dados em um arquivo JSON
 function writeJSONFile(filePath, data) {
@@ -116,6 +147,7 @@ cron.schedule('0 0 * * *', () => {
     console.log('Contagem de acessos reiniciada.');
 });
 
+// Middleware para verificar autenticação
 // Middleware para verificar autenticação
 const isAuthenticated = (req, res, next) => {
     const username = req.session.username;
@@ -188,13 +220,39 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rotas da aplicação web
 app.get('/', (req, res) => {
-    res.render('index', { 
-        campeonatos: campeonatos,
-        calcularClassificacao: calcularClassificacao
+    // Caminho para o arquivo JSON
+    const caminhoArquivo = path.join(__dirname, 'data', 'campeonatos.json');
+
+    // Lê o arquivo JSON
+    fs.readFile(caminhoArquivo, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Erro ao ler o arquivo JSON:', err);
+            return res.status(500).send('Erro ao carregar os dados');
+        }
+
+        // Converte o JSON para um objeto JavaScript
+        const campeonatos = JSON.parse(data);
+
+        // Renderiza a página com os dados atualizados
+        res.render('index', {
+            campeonatos: campeonatos,
+            calcularClassificacao: calcularClassificacao
+        });
     });
 });
 
 app.get('/login', (req, res) => {
+    // Verifica se o usuário já está logado
+    if (req.session.username) {
+        // Redireciona para a página correta com base no tipo de usuário
+        if (req.session.username === superuser.username) {
+            return res.redirect('/admin/master'); // Redireciona para a página de admin
+        } else {
+            return res.redirect('/user'); // Redireciona para a página do usuário comum
+        }
+    }
+
+    // Se o usuário não estiver logado, renderiza a página de login
     res.render('login');
 });
 
@@ -203,29 +261,34 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
+    // Carregar os usuários do arquivo sempre que houver um login
+    let users = readJSONFile(usersFilePath);
+
     // Verifica se é o superusuário
     if (username === superuser.username && password === superuser.password) {
         req.session.username = username;
-        return res.redirect('/admin/master'); // Redireciona para a página de admin
+        return res.redirect('/admin/master');
     }
 
     // Verifica se é um usuário comum
     const user = users.find(u => u.username === username);
 
     if (!user) {
-        return res.status(401).json({ error: 'Usuário não encontrado.' }); // Usuário não existe
+        return res.status(401).json({ error: 'Usuário não encontrado.' });
     }
 
     if (user.password !== password) {
-        return res.status(401).json({ error: 'Senha incorreta.' }); // Senha incorreta
+        return res.status(401).json({ error: 'Senha incorreta.' });
     }
 
-    // Se o login for bem-sucedido (usuário comum)
+    // Se o login for bem-sucedido
     req.session.username = username;
-    const userCampeonatoIds = user.campeonatos || [];
-    req.session.userCampeonatoIds = userCampeonatoIds;
-    return res.redirect('/user'); // Redireciona para a página do usuário
+    req.session.userCampeonatoIds = Array.isArray(user.campeonatos) ? user.campeonatos : []; // Garante que seja sempre um array
+
+    return res.redirect('/user');
 });
+
+
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
@@ -236,20 +299,32 @@ app.get('/logout', (req, res) => {
 
 app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
     const { nome, responsavel } = req.body;
-    const novoCampeonato = { nome, responsavel, times: [] };
-    campeonatos.push(novoCampeonato);
-    const campeonatoId = campeonatos.length - 1;
 
+    // Lê os arquivos JSON novamente
+    let users = readJSONFile(usersFilePath);
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Cria o novo campeonato com um campo 'id' explícito
+    const campeonatoId = campeonatos.length; // O ID será o tamanho do array, garantindo unicidade
+    const novoCampeonato = { id: campeonatoId, nome, responsavel, times: [] };
+
+    // Adiciona o campeonato à lista de campeonatos
+    campeonatos.push(novoCampeonato);
+
+    // Associa o campeonato ao usuário responsável
     const userIndex = users.findIndex(u => u.username === responsavel);
     if (userIndex !== -1) {
         if (!users[userIndex].campeonatos) {
             users[userIndex].campeonatos = [];
         }
         users[userIndex].campeonatos.push(campeonatoId);
-        writeJSONFile(usersFilePath, users);
     }
 
+    // Salva as alterações nos arquivos JSON
+    writeJSONFile(usersFilePath, users);
     writeJSONFile(campeonatosFilePath, campeonatos);
+
+    // Redireciona para a lista de campeonatos
     res.redirect('/admin/campeonatos');
 });
 
@@ -281,28 +356,30 @@ app.post('/admin/campeonatos/delete/:id', isAuthenticated, isSuperuser, (req, re
 app.get('/user', isAuthenticated, (req, res) => {
     const username = req.session.username;
     const userCampeonatoIds = req.session.userCampeonatoIds || [];
+
+    // Carrega os campeonatos do arquivo a cada acesso
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Filtra os campeonatos do usuário
     const userCampeonatos = userCampeonatoIds
         .map(id => campeonatos[id])
         .filter(campeonato => campeonato !== undefined);
 
-    const success = req.session.success || null;
-    const error = req.session.error || null;
-    req.session.success = null;
-    req.session.error = null;
-
     res.render('user', { 
         campeonatos: userCampeonatos, 
-        userCampeonatoIds,
-        username,
-        success,
-        error
+        userCampeonatoIds, // Passa os IDs dos campeonatos do usuário
+        username
     });
 });
+
 
 app.post('/user/campeonatos/:id/add-time', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const { nome, vitorias, jogos, empates, derrotas, golsMarcados, golsSofridos } = req.body;
     const username = req.session.username;
+
+    // Lê os campeonatos do JSON sempre antes da verificação
+    let campeonatos = readJSONFile(campeonatosFilePath);
 
     if (campeonatos[id] && campeonatos[id].responsavel.trim().toLowerCase() === username.trim().toLowerCase()) {
         if (!nome || isNaN(vitorias) || isNaN(jogos) || isNaN(empates) || isNaN(derrotas) || isNaN(golsMarcados) || isNaN(golsSofridos)) {
@@ -317,6 +394,8 @@ app.post('/user/campeonatos/:id/add-time', isAuthenticated, (req, res) => {
                 golsMarcados: parseInt(golsMarcados),
                 golsSofridos: parseInt(golsSofridos)
             });
+
+            // Atualiza o arquivo JSON
             writeJSONFile(campeonatosFilePath, campeonatos);
             req.session.success = 'Time adicionado com sucesso!';
         }
@@ -326,6 +405,7 @@ app.post('/user/campeonatos/:id/add-time', isAuthenticated, (req, res) => {
 
     res.redirect('/user');
 });
+
 
 app.post('/admin/api-keys/create', isAuthenticated, isSuperuser, (req, res) => {
     const token = generateToken();
@@ -345,15 +425,35 @@ app.post('/admin/api-keys/revoke', isAuthenticated, isSuperuser, (req, res) => {
 });
 
 app.get('/user/campeonatos/:id/edit-time/:timeIndex', isAuthenticated, (req, res) => {
-    const { id, timeIndex } = req.params;
+    const id = parseInt(req.params.id); // Garante que o ID seja um número
+    const timeIndex = parseInt(req.params.timeIndex); // Converte o índice do time para número
     const username = req.session.username;
-    if (campeonatos[id].responsavel === username) {
-        const time = campeonatos[id].times[timeIndex];
-        res.render('edit-time', { campeonatoId: id, timeIndex, time });
-    } else {
-        res.status(403).send('Acesso negado.');
+
+    // Recarrega os campeonatos do JSON antes de buscar o time
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato existe
+    if (!campeonatos[id]) {
+        return res.status(404).send('Campeonato não encontrado.');
     }
+
+    // Verifica se o usuário é o responsável pelo campeonato
+    if (campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    // Verifica se o índice do time é válido
+    if (!campeonatos[id].times || !campeonatos[id].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Obtém o time correto
+    const time = campeonatos[id].times[timeIndex];
+
+    // Renderiza a página de edição com os dados do time
+    res.render('edit-time', { campeonatoId: id, timeIndex, time });
 });
+
 
 app.post('/user/campeonatos/:id/update-time/:timeIndex', isAuthenticated, (req, res) => {
     const { id, timeIndex } = req.params;
@@ -380,6 +480,15 @@ app.post('/user/campeonatos/:id/delete-time/:timeIndex', isAuthenticated, (req, 
 app.get('/user/agenda', isAuthenticated, (req, res) => {
     const username = req.session.username;
 
+
+ // Caminho dos arquivos JSON
+    const campeonatosFilePath = './data/campeonatos.json';  // Caminho do arquivo de campeonatos
+    const agendamentosFilePath = './data/agendamentos.json';  // Caminho do arquivo de agendamentos
+    
+
+    // Lê o arquivo campeonatos.json
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
     // Busca as agendas do usuário
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
@@ -396,6 +505,15 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
         }).filter(a => a !== undefined);
     }
 
+    
+
+ // Busca os campeonatos do usuário
+ const userCampeonatoIds = user.campeonatos || [];  // IDs de campeonatos do usuário
+ const userCampeonatos = userCampeonatoIds
+     .map(id => campeonatos.find(campeonato => campeonato.id === id)) // Busca pelo id do campeonato
+     .filter(campeonato => campeonato !== undefined);  // Filtra campeonatos que não existirem
+
+        
     // Passa as variáveis success e error para o template
     const success = req.session.success || null;
     const error = req.session.error || null;
@@ -404,10 +522,12 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
 
     res.render('user-agenda', { 
         agendamentos: userAgendas,
+        campeonatos: userCampeonatos, // Passa os campeonatos do usuário
         success,
         error
     });
 });
+
 
 // Rota para adicionar um jogo à agenda do usuário
 app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
@@ -417,7 +537,9 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
     if (!logo1 || !time1 || !logo2 || !time2 || !camp || !data || !hora || !local) {
         req.session.error = 'Preencha todos os campos corretamente.';
     } else {
+        const agendamentos = readJSONFile(agendamentosFilePath);
         const novoJogo = { 
+            id: agendamentos.length, // O ID é o índice atual do array, iniciando de 0
             logo1, 
             time1, 
             logo2, 
@@ -430,9 +552,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
         };
 
         // Adiciona o novo jogo ao arquivo de agendamentos
-        const agendamentos = readJSONFile(agendamentosFilePath);
         agendamentos.push(novoJogo);
-        const agendaId = agendamentos.length - 1; // ID da nova agenda
         writeJSONFile(agendamentosFilePath, agendamentos);
 
         // Adiciona o ID da agenda ao usuário responsável
@@ -442,7 +562,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
             if (!users[userIndex].agendas) {
                 users[userIndex].agendas = []; // Inicializa o campo agendas se não existir
             }
-            users[userIndex].agendas.push(agendaId); // Adiciona o ID da agenda
+            users[userIndex].agendas.push(novoJogo.id); // Adiciona o ID da agenda
             writeJSONFile(usersFilePath, users);
         }
 
@@ -451,7 +571,7 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
         const cronExpression = `${dataHoraJogo.getMinutes()} ${dataHoraJogo.getHours()} ${dataHoraJogo.getDate()} ${dataHoraJogo.getMonth() + 1} *`;
 
         cron.schedule(cronExpression, () => {
-            removerAgendamento(agendaId); // Remove o agendamento e o índice do usuário
+            removerAgendamento(novoJogo.id); // Remove o agendamento com o ID
             console.log(`Jogo removido: ${time1} vs ${time2} em ${data} ${hora}`);
         });
 
@@ -461,12 +581,16 @@ app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
     res.redirect('/user/agenda');
 });
 
-// Rota para exibir a página de edição de um agendamento
+
+
+
+// Rota para editar agendamento
 app.get('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const username = req.session.username;
 
-    // Verifica se o usuário tem permissão para editar a agenda
+    console.log(`Tentativa de editar agendamento com ID: ${id}`);
+
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
 
@@ -475,14 +599,34 @@ app.get('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
         const agendamento = agendamentos[id];
 
         if (agendamento) {
-            res.render('editar-agenda', { agendamento, id });
+            console.log('Agendamento encontrado:', agendamento);
+
+            const campeonatos = readJSONFile(campeonatosFilePath);
+            const userCampeonatos = campeonatos.filter(campeonato => user.campeonatos.includes(campeonato.id));
+
+            // Passando o id do agendamento para a view
+            res.render('editar-agenda', {
+                campeonatos: userCampeonatos,
+                agendamento: agendamento,
+                id: id,  // Passando o id para a view
+                success: req.flash('success'),
+                error: req.flash('error')
+            });
         } else {
+            console.log('Agendamento não encontrado.');
             res.status(404).send('Agendamento não encontrado.');
         }
     } else {
+        console.log('Acesso negado: usuário não tem permissão.');
         res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
     }
 });
+
+
+
+
+
+
 
 // Rota para atualizar um agendamento
 app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
@@ -490,7 +634,6 @@ app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
     const { logo1, time1, logo2, time2, camp, data, hora, local } = req.body;
     const username = req.session.username;
 
-    // Verifica se o usuário tem permissão para editar a agenda
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
 
@@ -499,28 +642,50 @@ app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
         const agendamento = agendamentos[id];
 
         if (agendamento) {
+            // Cancela o cron job antigo, se existir
+            if (cronJobs[id]) {
+                cronJobs[id].stop();
+                console.log(`Tarefa agendada anterior para o agendamento ${id} foi cancelada.`);
+            }
+
             // Atualiza os dados do agendamento
-            agendamentos[id] = { 
-                logo1, 
-                time1, 
-                logo2, 
-                time2, 
+            agendamentos[id] = {
+                logo1,
+                time1,
+                logo2,
+                time2,
                 camp,
-                data, 
-                hora, 
-                local, 
-                responsavel: username // Mantém o responsável como o usuário logado
+                data,
+                hora,
+                local,
+                responsavel: username
             };
+
+            // Salva as alterações no JSON
             writeJSONFile(agendamentosFilePath, agendamentos);
+
+            // Agenda a nova remoção com base na nova data e hora
+            const dataHoraJogo = new Date(`${data}T${hora}`);
+            const cronExpression = `${dataHoraJogo.getMinutes()} ${dataHoraJogo.getHours()} ${dataHoraJogo.getDate()} ${dataHoraJogo.getMonth() + 1} *`;
+
+            cronJobs[id] = cron.schedule(cronExpression, () => {
+                removerAgendamento(Number(id));
+                console.log(`Jogo removido: ${time1} vs ${time2} em ${data} ${hora}`);
+                delete cronJobs[id]; // Remove a referência após execução
+            });
+
             req.session.success = 'Agendamento atualizado com sucesso!';
-            res.redirect('/user/agenda');
+            return res.redirect('/user/agenda');
         } else {
-            res.status(404).send('Agendamento não encontrado.');
+            return res.status(404).send('Agendamento não encontrado.');
         }
     } else {
-        res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
+        return res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
     }
 });
+
+
+
 
 app.get('/agenda', (req, res) => {
     const agenda = readJSONFile(agendamentosFilePath); // Lê os agendamentos do arquivo JSON
@@ -717,31 +882,28 @@ app.post('/api/login', (req, res) => {
     // Se não encontrou o usuário
     res.status(401).json({ error: 'Usuário ou senha incorretos.' });
 });
-app.get('/admin', (req, res) => {
-    const page = req.query.page || 'master'; // Pega o parâmetro 'page' da URL ou define 'master' como padrão
+app.get('/admin', isAuthenticated, isSuperuser, (req, res) => {
+    try {
+        const page = req.query.page || 'master'; // Pega o parâmetro 'page' da URL ou define 'master' como padrão
 
-    // Dados fictícios para exemplo
-    const users = [{ username: 'admin' }, { username: 'user1' }];
-    const tokens = ['token1', 'token2'];
-    const campeonatos = [
-        { nome: 'Campeonato 1', responsavel: 'admin' },
-        { nome: 'Campeonato 2', responsavel: 'user1' }
-    ];
+        // Lê os dados reais dos arquivos JSON
+        const users = readJSONFile(usersFilePath); // Lê os usuários
+        const tokens = readJSONFile(tokensFilePath); // Lê os tokens
+        const campeonatos = readJSONFile(campeonatosFilePath); // Lê os campeonatos
+        const accessData = readAccessData(); // Lê os dados de acesso
 
-    // Adicionando o objeto accessData
-    const accessData = {
-        home: 120, // Exemplo de dado (número de acessos à página home)
-        agenda: 80 // Exemplo de dado (número de acessos à página agenda)
-    };
-
-    // Renderiza o template admin.ejs com os dados correspondentes
-    res.render('admin', {
-        page, // Passa a página atual para o template
-        users,
-        tokens,
-        campeonatos,
-        accessData // Passa o objeto accessData para o template
-    });
+        // Renderiza o template admin.ejs com os dados reais
+        res.render('admin', {
+            page, // Passa a página atual para o template
+            users, // Passa a lista de usuários
+            tokens, // Passa a lista de tokens
+            campeonatos, // Passa a lista de campeonatos
+            accessData // Passa os dados de acesso
+        });
+    } catch (error) {
+        console.error('Erro ao carregar a página de admin:', error);
+        res.status(500).send('Erro interno ao carregar a página de administração.');
+    }
 });
 
 // Rota para a página Master
@@ -760,11 +922,17 @@ app.get('/admin/master', isAuthenticated, isSuperuser, (req, res) => {
 
 // Rota para a página Adicionar Campeonato
 app.get('/admin/adicionar-campeonato', isAuthenticated, isSuperuser, (req, res) => {
+    // Lê o arquivo users.json novamente
+    const users = readJSONFile(usersFilePath);
+
+    // Log para depuração
+    console.log('Usuários carregados do arquivo:', users);
+
     res.render('admin', {
         page: 'adicionar-campeonato', // Define a página atual
-        users,
-        tokens,
-        campeonatos
+        users, // Passa os usuários atualizados para o template
+        tokens: readJSONFile(tokensFilePath), // Carrega os tokens
+        campeonatos: readJSONFile(campeonatosFilePath) // Carrega os campeonatos
     });
 });
 
@@ -782,9 +950,9 @@ app.get('/admin/tokens', isAuthenticated, isSuperuser, (req, res) => {
 app.get('/admin/campeonatos', isAuthenticated, isSuperuser, (req, res) => {
     res.render('admin', {
         page: 'campeonatos', // Define a página atual
-        users,
-        tokens,
-        campeonatos
+       users, // Passa os usuários para o template
+        tokens: readJSONFile(tokensFilePath), // Carrega os tokens
+        campeonatos: readJSONFile(campeonatosFilePath) // Carrega os campeonatos
     });
 });
 
@@ -801,7 +969,7 @@ app.get('/admin/usuarios', isAuthenticated, isSuperuser, (req, res) => {
     });
 });
 
-app.get('/admin/master', (req, res) => {
+app.get('/admin/master',  (req, res) => {
     // Caminho para o arquivo JSON
     const dataPath = path.join(__dirname, 'data', 'acessData.json');
 
@@ -876,7 +1044,7 @@ app.post('/admin/users/create', isAuthenticated, isSuperuser, (req, res) => {
     const { username, password } = req.body;
 
     // Lê o arquivo users.json novamente
-    const users = readJSONFile(usersFilePath);
+    let users = readJSONFile(usersFilePath);
 
     // Gera um ID único para o novo usuário
     const newUserId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
@@ -886,6 +1054,12 @@ app.post('/admin/users/create', isAuthenticated, isSuperuser, (req, res) => {
 
     // Salva as alterações no arquivo JSON
     writeJSONFile(usersFilePath, users);
+
+    // Recarrega os usuários após a criação
+    users = readJSONFile(usersFilePath);
+
+    // Log para depuração
+    console.log('Novo usuário adicionado:', users[users.length - 1]);
 
     // Redireciona para a lista de usuários
     res.redirect('/admin/usuarios');
@@ -915,7 +1089,34 @@ app.post('/admin/users/delete/:id', isAuthenticated, isSuperuser, (req, res) => 
     res.json({ success: true });
 });
 
+app.get('/admin/usuarios/data', isAuthenticated, isSuperuser, (req, res) => {
+    const users = readJSONFile(usersFilePath);
+    res.json(users);
+});
 
+app.get('/campeonato/:nome', (req, res) => {
+    const nomeCampeonato = req.params.nome;
+    const caminhoArquivo = path.join(__dirname, 'data', 'campeonatos.json');
+
+    fs.readFile(caminhoArquivo, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Erro ao ler o arquivo JSON:', err);
+            return res.status(500).send('Erro ao carregar os dados');
+        }
+
+        const campeonatos = JSON.parse(data);
+        const campeonato = campeonatos.find(c => c.nome === nomeCampeonato);
+
+        if (!campeonato) {
+            return res.status(404).send('Campeonato não encontrado');
+        }
+
+        res.render('campeonato', {
+            campeonato: campeonato,
+            calcularClassificacao: calcularClassificacao
+        });
+    });
+});
 
 function getLocalIP() {
     const interfaces = os.networkInterfaces();
