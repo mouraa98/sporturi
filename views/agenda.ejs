@@ -23,24 +23,22 @@
     
     <div class="main-content">
         <div class="container">
-            
-            
-            <h1><i class="fa-solid fa-futbol"></i> Jogos</h1> 
-           <!-- Barra de pesquisa -->
-           <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Pesquisar jogos..." onkeyup="filtrarJogos()">
-            <i class="fas fa-search"></i>
-        </div>
-
+            <h1><i class="fa-solid fa-futbol"></i> Jogos</h1>
+            <!-- Barra de pesquisa -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Pesquisar jogos..." onkeyup="filtrarJogos()">
+                <i class="fas fa-search"></i>
+            </div>
+    
             <% if (agenda && agenda.length > 0) { %>
                 <% let campeonatos = {}; %>
-
+    
                 <!-- Organiza jogos por campeonato -->
                 <% agenda.forEach((jogo) => { %>
                     <% if (!campeonatos[jogo.camp]) { campeonatos[jogo.camp] = []; } %>
                     <% campeonatos[jogo.camp].push(jogo); %>
                 <% }); %>
-
+    
                 <% Object.keys(campeonatos).forEach((campName) => { %>
                     <div class="campeonato">
                         <h2><%= campName %></h2>

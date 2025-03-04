@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
+    <title>Admin</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <!-- No <head> do admin.ejs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -18,26 +20,43 @@
             <button class="menu-toggle" aria-label="Abrir menu">
                 <span class="hamburger"></span>
             </button>
+
             <ul class="menu">
                 <li><a href="/admin/master"><i class="fas fa-home"></i> Master</a></li>
-                <li><a href="/admin/usuarios"><i class="fas fa-users"></i> Usuários</a></li>
-                <li><a href="/admin/campeonatos"><i class="fas fa-trophy"></i> Campeonatos</a></li>
-                <li><a href="/admin/adicionar-campeonato"><i class="fas fa-trophy"></i> Adicionar Campeonato</a></li>
+                <li><a href="/admin/adicionar-campeonato"><i class="fas fa-plus"></i> Adicionar Campeonato</a></li>
                 <li><a href="/admin/tokens"><i class="fas fa-key"></i> Tokens</a></li>
-                
+                <li><a href="/admin/campeonatos"><i class="fas fa-trophy"></i> Campeonatos</a></li>
+                <li><a href="/admin/usuarios"><i class="fas fa-users"></i> Usuários</a></li>
                 <li><a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
-            </ul>
+        </ul>
         </nav>
     </header>
 
     <div class="main-content">
         <div class="container">
             <% if (page === 'master') { %>
-                <h1>MASTER</h1>
-                <p>Bem-vindo ao painel administrativo.</p>
+                <h1><i class="fas fa-home"></i> Master</h1>
+                <p>Bem-vindo ao painel de administração.</p>
             
-                <!-- Adicione o canvas para o gráfico -->
-                <div style="width: 80%; margin: 0 auto;">
+                <!-- Estatísticas -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <h2><i class="fas fa-users"></i> Usuários</h2>
+                        <p>Total: <%= users.length %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h2><i class="fas fa-trophy"></i> Campeonatos</h2>
+                        <p>Total: <%= campeonatos.length %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h2><i class="fas fa-key"></i> Tokens</h2>
+                        <p>Total: <%= tokens.length %></p>
+                    </div>
+                </div>
+            
+                <!-- Gráficos -->
+                 <!-- Adicione o canvas para o gráfico -->
+                 <div style="width: 80%; margin: 0 auto;">
                     <canvas id="accessChart"></canvas>
                 </div>
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -88,182 +107,92 @@
                         });
                     });
                 </script>
+            
             <% } else if (page === 'adicionar-campeonato') { %>
-                <!-- Formulário para adicionar campeonatos -->
-                <h2><i class="fas fa-trophy"></i> Adicionar Campeonato</h2>
+                <h1><i class="fas fa-plus"></i> Adicionar Campeonato</h1>
                 <form action="/admin/campeonatos/add" method="POST">
-                    <label for="nome">Nome do Campeonato:</label>
-                    <input type="text" id="nome" name="nome" required>
-                    <label for="responsavel">Responsável:</label>
-                    <select id="responsavel" name="responsavel" required>
-                        <% console.log('Usuários no template:', users); %> <!-- Log para depuração -->
-                        <% users.forEach(user => { %>
-                            <option value="<%= user.username %>"><%= user.username %></option>
-                        <% }) %>
-                    </select>
-                    <button type="submit"><i class="fas fa-plus"></i> Adicionar Campeonato</button>
-                </form>
-
-                <% } else if (page === 'tokens') { %>
-                    <!-- Formulário para gerar tokens -->
-                    <h2><i class="fas fa-key"></i> Gerar Token de Acesso</h2>
-                    <form action="/admin/api-keys/create" method="POST">
-                        <button type="submit" class="btn-generate-token"><i class="fas fa-plus"></i> Gerar Novo Token</button>
-                    </form>
-                
-                    <!-- Lista de tokens ativos -->
-                    <h2><i class="fas fa-key"></i> Tokens Ativos</h2>
-                    <ul class="token-list">
-                        <% tokens.forEach(token => { %>
-                            <li class="token-item">
-                                <div class="token-content">
-                                    <span class="token-value"><%= token %></span>
-                                    <button class="btn-copy-token" onclick="copyToken('<%= token %>')">
-                                        <i class="fas fa-copy"></i> Copiar
-                                    </button>
-                                </div>
-                                <form action="/admin/api-keys/revoke" method="POST" class="token-actions" style="
-                                margin-bottom: 0px;
-                                background-color: #c20c0c; /* Azul mais claro */
-                                padding: 0px;
-                                border-radius: 12px;
-                                
-                            ">
-                                    <input type="hidden" name="token" value="<%= token %>">
-                                    <button type="submit" class="btn-delete-token"><i class="fas fa-trash"></i> Excluir</button>
-                                </form>
-                            </li>
-                        <% }) %>
-                    </ul>
-                <% } else if (page === 'campeonatos') { %>
-                <!-- Lista de campeonatos -->
-                <h2><i class="fas fa-trophy"></i> Campeonatos</h2>
-                <% campeonatos.forEach((campeonato, id) => { %>
-                    <div class="campeonato">
-                        <h3><%= campeonato.nome %></h3>
-                        <p>Responsável: <%= campeonato.responsavel %></p>
-                        <form action="/admin/campeonatos/delete/<%= id %>" method="POST">
-                            <button ><i class="fas fa-trash"></i> Excluir Campeonato</button>
-                        </form>
+                    <div class="form-group">
+                        <label for="nome">Nome do Campeonato:</label>
+                        <input type="text" id="nome" name="nome" required>
                     </div>
-                <% }) %>
-
-                <% } else if (page === 'usuarios') { %>
-                    <!-- Formulário para criar usuários -->
-                    <h2><i class="fas fa-user-plus"></i> Criar Usuário</h2>
-                    <form action="/admin/users/create" method="POST">
-                        <label for="username">Usuário:</label>
+                    <div class="form-group">
+                        <label for="responsavel">Responsável:</label>
+                        <select id="responsavel" name="responsavel" required>
+                            <% users.forEach(user => { %>
+                                <option value="<%= user.username %>"><%= user.username %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoTabela">Tipo de Tabela:</label>
+                        <select id="tipoTabela" name="tipoTabela" required>
+                            <option value="pontosCorridos">Pontos Corridos</option>
+                            <option value="grupos">Grupos</option>
+                        </select>
+                    </div>
+                    <button type="submit"><i class="fas fa-save"></i> Salvar</button>
+                </form>
+            <% } else if (page === 'tokens') { %>
+                <h1><i class="fas fa-key"></i> Tokens</h1>
+                <div class="tokens-list">
+                    <% tokens.forEach(token => { %>
+                        <div class="token-card">
+                            <p><%= token %></p>
+                            <form action="/admin/api-keys/revoke" method="POST">
+                                <input type="hidden" name="token" value="<%= token %>">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Revogar</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+                <form action="/admin/api-keys/create" method="POST">
+                    <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Token</button>
+                </form>
+            <% } else if (page === 'campeonatos') { %>
+                <h1><i class="fas fa-trophy"></i> Campeonatos</h1>
+                <div class="campeonatos-list">
+                    <% campeonatos.forEach((campeonato, index) => { %>
+                        <div class="campeonato-card">
+                            <h2><%= campeonato.nome %></h2>
+                            <p>Responsável: <%= campeonato.responsavel %></p>
+                            <p>Tipo de Tabela: <%= campeonato.tipoTabela %></p>
+                            <form action="/admin/campeonatos/delete/<%= index %>" method="POST">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else if (page === 'usuarios') { %>
+                <h1><i class="fas fa-users"></i> Usuários</h1>
+                <div class="usuarios-list">
+                    <% users.forEach(user => { %>
+                        <div class="usuario-card">
+                            <h2><%= user.username %></h2>
+                            <form action="/admin/users/delete/<%= user.id %>" method="POST">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+                <form action="/admin/users/create" method="POST">
+                    <div class="form-group">
+                        <label for="username">Nome de Usuário:</label>
                         <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Senha:</label>
                         <input type="password" id="password" name="password" required>
-                        <button type="submit"><i class="fas fa-plus"></i> Criar Usuário</button>
-                    </form>
-                
-                    <!-- Barra de pesquisa -->
-                    <h2><i class="fas fa-users"></i> Lista de Usuários</h2>
-                    <input type="text" id="searchUser" placeholder="Pesquisar usuário..." onkeyup="filterUsers()">
-                
-                    <!-- Lista de usuários -->
-                    <ul id="user-list">
-                        <% users.forEach(user => { %>
-                            <li id="user-<%= user.id %>">
-                                <span class="username"><%= user.username %></span> <!-- Adicionei a classe "username" -->
-                                <div class="user-actions">
-                                    <a href="/admin/users/edit/<%= user.id %>" class="edit-button"><i class="fas fa-edit"></i> Editar</a>
-                                    <button class="delete-button" onclick="deleteUser(<%= user.id %>)"><i class="fas fa-trash"></i> Excluir</button>
-                                </div>
-                            </li>
-                        <% }) %>
-                    </ul>
-                    
-                    
-                    
-                   <script>async function deleteUser(userId) {
-                    userId = Number(userId);
-                    console.log('ID do usuário a ser deletado:', userId); 
-                    console.log('Tipo do ID:', typeof userId); 
-                
-                    if (confirm('Tem certeza que deseja excluir este usuário?')) {
-                        try {
-                            const deleteButton = document.querySelector(`#user-${userId} .delete-button`);
-                            deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
-                            deleteButton.disabled = true;
-                
-                            const response = await fetch(`/admin/users/delete/${userId}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            });
-                
-                            console.log('Status da resposta:', response.status);
-                            const text = await response.text(); // Obtém o conteúdo da resposta como texto
-                            console.log('Resposta do servidor:', text);
-                
-                            let data;
-                            try {
-                                data = JSON.parse(text); // Tenta analisar como JSON
-                            } catch (error) {
-                                throw new Error('A resposta não é um JSON válido.');
-                            }
-                
-                            if (!response.ok) {
-                                throw new Error('Erro ao excluir usuário.');
-                            }
-                
-                            if (data.success) {
-                                const userItem = document.getElementById(`user-${userId}`);
-                                if (userItem) {
-                                    userItem.remove();
-                                }
-                                alert('Usuário excluído com sucesso!');
-                            } else {
-                                alert('Erro ao excluir usuário: ' + (data.message || 'Erro desconhecido'));
-                            }
-                        } catch (error) {
-                            console.error('Erro:', error);
-                            alert('Erro ao excluir usuário: ' + error.message);
-                        } finally {
-                            const deleteButton = document.querySelector(`#user-${userId} .delete-button`);
-                            if (deleteButton) {
-                                deleteButton.innerHTML = '<i class="fas fa-trash"></i> Excluir';
-                                deleteButton.disabled = false;
-                            }
-                        }
-                    }
-                }
-                </script>
-                
-                    <!-- Script para filtrar usuários -->
-                    <script>
-                        function filterUsers() {
-                            const input = document.getElementById('searchUser'); // Pega o campo de pesquisa
-                            const filter = input.value.toUpperCase(); // Transforma em maiúsculas para busca sem case-sensitive
-                    
-                            const userList = document.getElementById('user-list'); // Pega a lista de usuários
-                            const users = userList.getElementsByTagName('li'); // Obtém todos os itens de usuários da lista
-                    
-                            for (let i = 0; i < users.length; i++) {
-                                const usernameSpan = users[i].getElementsByClassName('username')[0]; // Pega o nome de usuário
-                                const username = usernameSpan.textContent || usernameSpan.innerText; // Obtém o texto do nome de usuário
-                    
-                                // Verifica se o nome do usuário contém o texto da pesquisa
-                                if (username.toUpperCase().indexOf(filter) > -1) {
-                                    users[i].style.display = ''; // Exibe o item
-                                } else {
-                                    users[i].style.display = 'none'; // Esconde o item
-                                }
-                            }
-                        }
-                    </script>
-                    
-                <% } %>
+                    </div>
+                    <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Usuário</button>
+                </form>
+            <% } %>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
     </footer>
+
     <script>
         // Função para copiar o token
         function copyToken(token) {
@@ -296,6 +225,6 @@
         updateUserList(); // Atualiza a lista de usuários ao carregar a página
     });
 </script>
-    
+
 </body>
 </html>

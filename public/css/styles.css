@@ -141,25 +141,27 @@ th {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    padding: 20px; /* Aumentar o padding */
+    border-radius: 20px; /* Aumentar o arredondamento */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Sombra mais sutil */
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 280px; /* Largura reduzida */
-    font-size: 0.9rem; /* Fonte menor */
-    animation: fadeIn 0.3s ease;
+    width: 300px; /* Largura ligeiramente maior */
+    font-size: 1rem; /* Tamanho da fonte ligeiramente maior */
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards; /* Animação de entrada */
+    transition: background-color 0.3s ease; /* Transição de cores */
 }
 
 .popup.success {
-    background-color: #10b981; /* Verde vibrante */
+    background-color: #22c55e; /* Verde mais claro e moderno */
     color: #fff;
 }
 
 .popup.error {
-    background-color: #ef4444; /* Vermelho vibrante */
+    background-color: #dc2626; /* Vermelho mais suave e moderno */
     color: #fff;
 }
 
@@ -168,7 +170,39 @@ th {
     border: none;
     color: inherit;
     cursor: pointer;
-    font-size: 1rem; /* Fonte menor */
+    font-size: 1.2rem; /* Tamanho da fonte ligeiramente maior */
+    transition: transform 0.2s ease; /* Adicionar transição ao botão */
+}
+
+.popup button:hover {
+    transform: scale(1.1); /* Efeito de hover no botão */
+}
+
+.popup i {
+    margin-right: 10px; /* Espaço entre o ícone e o texto */
+    font-size: 1.2rem; /* Tamanho do ícone ligeiramente maior */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%); /* Início ligeiramente acima */
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -40%); /* Fim ligeiramente acima */
+    }
 }
 /* Estilos para telas pequenas (menu hambúrguer) */
 @media (max-width: 768px) {
@@ -283,16 +317,21 @@ th {
 /* Pseudo-elemento para o background */
 body::before {
     content: '';
-    position: absolute;
+    position: fixed; /* Fixa o fundo na janela do navegador */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/assets/background-futebol.jpg'); /* Caminho da imagem */
-    background-size: cover; /* Cobrir toda a área */
-    background-position: center; /* Centralizar a imagem */
-    opacity: 0.3; /* Opacidade de 10% */
+    background-image: url('/assets/background-futebol.jpg'); /* Substitua pelo caminho da sua imagem */
+    background-size: cover; /* Garante que a imagem cubra toda a área */
+    background-position: center; /* Centraliza a imagem */
+    opacity: 0.3; /* Opacidade de 30% */
     z-index: -1; /* Coloca o fundo atrás do conteúdo */
+}
+
+/* Outros estilos do body, se necessário */
+body {
+    /* ... seus outros estilos ... */
 }
 
 

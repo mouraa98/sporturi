@@ -176,3 +176,29 @@ footer i {
     padding: 15px;
     border-top: 1px solid #1f2937;
 }
+/* Estilos para grupos recolhíveis */
+.grupo-item {
+    margin-bottom: 20px;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.grupo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #1f2937;
+    cursor: pointer;
+}
+
+.grupo-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.grupo-content {
+    padding: 10px;
+    display: none; /* Inicialmente oculto */
+}

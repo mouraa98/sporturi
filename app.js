@@ -12,6 +12,8 @@ const os = require('os');
 const app = express();
 const port = 8000;
 
+app.use(express.json()); // Necessário para interpretar JSON no body
+
 const cronJobs = {}; // Objeto para armazenar tarefas agendadas
 
 app.use(session({
@@ -295,23 +297,28 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-
-
 app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
-    const { nome, responsavel } = req.body;
+    const { nome, responsavel, tipoTabela, grupos } = req.body;
 
-    // Lê os arquivos JSON novamente
-    let users = readJSONFile(usersFilePath);
+    if (!nome || !responsavel || !tipoTabela) {
+        return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+    }
+
     let campeonatos = readJSONFile(campeonatosFilePath);
+    let users = readJSONFile(usersFilePath);
 
-    // Cria o novo campeonato com um campo 'id' explícito
-    const campeonatoId = campeonatos.length; // O ID será o tamanho do array, garantindo unicidade
-    const novoCampeonato = { id: campeonatoId, nome, responsavel, times: [] };
+    const campeonatoId = campeonatos.length;
+    const novoCampeonato = { 
+        id: campeonatoId, 
+        nome, 
+        responsavel, 
+        tipoTabela, 
+        times: tipoTabela === 'pontosCorridos' ? [] : null,
+        grupos: (tipoTabela === 'grupos' && grupos) ? JSON.parse(grupos) : null // Evita erro de JSON.parse(undefined)
+    };
 
-    // Adiciona o campeonato à lista de campeonatos
     campeonatos.push(novoCampeonato);
 
-    // Associa o campeonato ao usuário responsável
     const userIndex = users.findIndex(u => u.username === responsavel);
     if (userIndex !== -1) {
         if (!users[userIndex].campeonatos) {
@@ -320,12 +327,39 @@ app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
         users[userIndex].campeonatos.push(campeonatoId);
     }
 
-    // Salva as alterações nos arquivos JSON
     writeJSONFile(usersFilePath, users);
     writeJSONFile(campeonatosFilePath, campeonatos);
 
-    // Redireciona para a lista de campeonatos
     res.redirect('/admin/campeonatos');
+});
+
+
+app.post('/admin/campeonatos/update/:id', isAuthenticated, isSuperuser, (req, res) => {
+    const { id } = req.params;
+    const { nome, responsavel, tipoTabela, grupos } = req.body;
+
+    // Lê os arquivos JSON novamente
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (campeonatos[id]) {
+        campeonatos[id].nome = nome;
+        campeonatos[id].responsavel = responsavel;
+        campeonatos[id].tipoTabela = tipoTabela;
+        if (tipoTabela === 'pontosCorridos') {
+            campeonatos[id].times = campeonatos[id].times || [];
+            campeonatos[id].grupos = null;
+        } else if (tipoTabela === 'grupos') {
+            campeonatos[id].grupos = JSON.parse(grupos);
+            campeonatos[id].times = null;
+        }
+
+        // Salva as alterações no arquivo JSON
+        writeJSONFile(campeonatosFilePath, campeonatos);
+
+        res.redirect('/admin/campeonatos');
+    } else {
+        res.status(404).send('Campeonato não encontrado.');
+    }
 });
 
 app.post('/admin/campeonatos/delete/:id', isAuthenticated, isSuperuser, (req, res) => {
@@ -372,6 +406,296 @@ app.get('/user', isAuthenticated, (req, res) => {
     });
 });
 
+app.post('/user/campeonatos/:id/add-time/:grupoIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex } = req.params;
+    const { nome, vitorias, jogos, empates, derrotas, golsMarcados, golsSofridos } = req.body;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
+    if (!campeonatos[id].grupos || !campeonatos[id].grupos[grupoIndex]) {
+        return res.status(404).json({ success: false, error: 'Grupo não encontrado.' });
+    }
+
+    if (!nome || isNaN(vitorias) || isNaN(jogos) || isNaN(empates) || isNaN(derrotas) || isNaN(golsMarcados) || isNaN(golsSofridos)) {
+        return res.status(400).json({ success: false, error: 'Todos os campos do time são obrigatórios.' });
+    }
+
+    const novoTime = {
+        nome,
+        vitorias: parseInt(vitorias),
+        jogos: parseInt(jogos),
+        empates: parseInt(empates),
+        derrotas: parseInt(derrotas),
+        golsMarcados: parseInt(golsMarcados),
+        golsSofridos: parseInt(golsSofridos)
+    };
+
+    campeonatos[id].grupos[grupoIndex].times.push(novoTime);
+    writeJSONFile(campeonatosFilePath, campeonatos);
+   
+    res.redirect('/user');
+    
+});
+
+app.post('/user/campeonatos/:id/delete-time/:grupoIndex/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex, timeIndex } = req.params;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato e o grupo existem
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).json({ success: false, error: 'Acesso negado.' });
+    }
+
+    if (!campeonatos[id].grupos || !campeonatos[id].grupos[grupoIndex]) {
+        return res.status(404).json({ success: false, error: 'Grupo não encontrado.' });
+    }
+
+    if (!campeonatos[id].grupos[grupoIndex].times || !campeonatos[id].grupos[grupoIndex].times[timeIndex]) {
+        return res.status(404).json({ success: false, error: 'Time não encontrado.' });
+    }
+
+    // Remove o time do grupo
+    campeonatos[id].grupos[grupoIndex].times.splice(timeIndex, 1);
+    writeJSONFile(campeonatosFilePath, campeonatos);
+
+    res.redirect('/user');
+});
+
+// Rota para editar times de grupos
+app.get('/user/campeonatos/:id/edit-time/grupos/:grupoIndex/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex, timeIndex } = req.params;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato, grupo e time existem
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    if (!campeonatos[id].grupos || !campeonatos[id].grupos[grupoIndex]) {
+        return res.status(404).send('Grupo não encontrado.');
+    }
+
+    if (!campeonatos[id].grupos[grupoIndex].times || !campeonatos[id].grupos[grupoIndex].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Obtém os dados do time para edição
+    const time = campeonatos[id].grupos[grupoIndex].times[timeIndex];
+
+    res.render('edit-time', { campeonatoId: id, grupoIndex, timeIndex, time });
+});
+
+// Rota para editar times de pontos corridos
+app.get('/user/campeonatos/:id/edit-time/pontos-corridos/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, timeIndex } = req.params;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato e o time existem
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    if (!campeonatos[id].times || !campeonatos[id].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Obtém os dados do time para edição
+    const time = campeonatos[id].times[timeIndex];
+
+    res.render('edit-time', { campeonatoId: id, timeIndex, time });
+});
+
+// Rota para atualizar times de grupos
+app.post('/user/campeonatos/:id/update-time/grupos/:grupoIndex/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex, timeIndex } = req.params;
+    const { nome, vitorias, jogos, empates, derrotas, golsMarcados, golsSofridos } = req.body;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato, grupo e time existem
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    if (!campeonatos[id].grupos || !campeonatos[id].grupos[grupoIndex]) {
+        return res.status(404).send('Grupo não encontrado.');
+    }
+
+    if (!campeonatos[id].grupos[grupoIndex].times || !campeonatos[id].grupos[grupoIndex].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Atualiza os dados do time
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].nome = nome;
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].vitorias = parseInt(vitorias);
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].jogos = parseInt(jogos);
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].empates = parseInt(empates);
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].derrotas = parseInt(derrotas);
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].golsMarcados = parseInt(golsMarcados);
+    campeonatos[id].grupos[grupoIndex].times[timeIndex].golsSofridos = parseInt(golsSofridos);
+
+    writeJSONFile(campeonatosFilePath, campeonatos);
+    res.redirect('/user');
+});
+
+// Rota para atualizar times de pontos corridos
+app.post('/user/campeonatos/:id/update-time/pontos-corridos/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, timeIndex } = req.params;
+    const { nome, vitorias, jogos, empates, derrotas, golsMarcados, golsSofridos } = req.body;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    // Verifica se o campeonato e o time existem
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    if (!campeonatos[id].times || !campeonatos[id].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Atualiza os dados do time
+    campeonatos[id].times[timeIndex].nome = nome;
+    campeonatos[id].times[timeIndex].vitorias = parseInt(vitorias);
+    campeonatos[id].times[timeIndex].jogos = parseInt(jogos);
+    campeonatos[id].times[timeIndex].empates = parseInt(empates);
+    campeonatos[id].times[timeIndex].derrotas = parseInt(derrotas);
+    campeonatos[id].times[timeIndex].golsMarcados = parseInt(golsMarcados);
+    campeonatos[id].times[timeIndex].golsSofridos = parseInt(golsSofridos);
+
+    writeJSONFile(campeonatosFilePath, campeonatos);
+    res.redirect('/user');
+});
+
+app.post('/user/campeonatos/:id/delete-grupo/:grupoIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex } = req.params;
+    const username = req.session.username;
+
+    // Lê os campeonatos do JSON
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (campeonatos[id] && campeonatos[id].responsavel === username) {
+        if (campeonatos[id].grupos && campeonatos[id].grupos[grupoIndex]) {
+            // Remove o grupo
+            campeonatos[id].grupos.splice(grupoIndex, 1);
+
+            // Salva as alterações no arquivo JSON
+            writeJSONFile(campeonatosFilePath, campeonatos);
+            req.session.success = 'Grupo excluído com sucesso!';
+        } else {
+            req.session.error = 'Grupo não encontrado.';
+        }
+    } else {
+        req.session.error = 'Acesso negado: você não é o responsável por este campeonato.';
+    }
+
+    res.redirect('/user');
+});
+
+app.post('/user/campeonatos/:id/update-time/:grupoIndex/:timeIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex, timeIndex } = req.params;
+    const { nome, vitorias, jogos, empates, derrotas, golsMarcados, golsSofridos } = req.body;
+    const username = req.session.username;
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (!campeonatos[id] || campeonatos[id].responsavel.trim().toLowerCase() !== username.trim().toLowerCase()) {
+        return res.status(403).send('Acesso negado.');
+    }
+
+    if (!campeonatos[id].grupos || !campeonatos[id].grupos[grupoIndex]) {
+        return res.status(404).send('Grupo não encontrado.');
+    }
+
+    if (!campeonatos[id].grupos[grupoIndex].times || !campeonatos[id].grupos[grupoIndex].times[timeIndex]) {
+        return res.status(404).send('Time não encontrado.');
+    }
+
+    // Atualiza os dados do time
+    campeonatos[id].grupos[grupoIndex].times[timeIndex] = {
+        nome,
+        vitorias: parseInt(vitorias),
+        jogos: parseInt(jogos),
+        empates: parseInt(empates),
+        derrotas: parseInt(derrotas),
+        golsMarcados: parseInt(golsMarcados),
+        golsSofridos: parseInt(golsSofridos)
+    };
+
+    writeJSONFile(campeonatosFilePath, campeonatos);
+
+    res.redirect('/user'); // Redireciona para a lista de campeonatos
+});
+
+
+
+app.post('/user/campeonatos/:id/add-grupo', isAuthenticated, (req, res) => {
+    const { id } = req.params;
+    const { nomeGrupo } = req.body;
+    const username = req.session.username;
+
+    // Lê os campeonatos do JSON sempre antes da verificação
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (campeonatos[id] && campeonatos[id].responsavel.trim().toLowerCase() === username.trim().toLowerCase()) {
+        if (!nomeGrupo) {
+            req.session.error = 'Nome do grupo é obrigatório.';
+        } else {
+            if (!campeonatos[id].grupos) {
+                campeonatos[id].grupos = [];
+            }
+            campeonatos[id].grupos.push({
+                nome: nomeGrupo,
+                times: []
+            });
+
+            // Atualiza o arquivo JSON
+            writeJSONFile(campeonatosFilePath, campeonatos);
+            req.session.success = 'Grupo adicionado com sucesso!';
+        }
+    } else {
+        req.session.error = 'Acesso negado: você não é o responsável por este campeonato.';
+    }
+
+    res.redirect('/user');
+});
+
+app.post('/user/campeonatos/:id/delete-grupo/:grupoIndex', isAuthenticated, (req, res) => {
+    const { id, grupoIndex } = req.params;
+    const username = req.session.username;
+
+    // Lê os campeonatos do JSON sempre antes da verificação
+    let campeonatos = readJSONFile(campeonatosFilePath);
+
+    if (campeonatos[id] && campeonatos[id].responsavel.trim().toLowerCase() === username.trim().toLowerCase()) {
+        if (campeonatos[id].grupos && campeonatos[id].grupos[grupoIndex]) {
+            campeonatos[id].grupos.splice(grupoIndex, 1);
+
+            // Atualiza o arquivo JSON
+            writeJSONFile(campeonatosFilePath, campeonatos);
+            req.session.success = 'Grupo excluído com sucesso!';
+        } else {
+            req.session.error = 'Grupo não encontrado.';
+        }
+    } else {
+        req.session.error = 'Acesso negado: você não é o responsável por este campeonato.';
+    }
+
+    res.redirect('/user');
+});
 
 app.post('/user/campeonatos/:id/add-time', isAuthenticated, (req, res) => {
     const { id } = req.params;

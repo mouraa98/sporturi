@@ -27,41 +27,82 @@
     <div class="main-content">
         <div class="container">
             <h2><i class="fa-solid fa-trophy"></i> <%= campeonato.nome %></h2>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO</th>
-                            <th><i class="fa-solid fa-shield-halved"></i> Time</th>
-                            <th><i class="fa-solid fa-star"></i> P</th>
-                            <th><i class="fa-solid fa-futbol"></i> J</th>
-                            <th><i class="fa-solid fa-trophy"></i> V</th>
-                            <th><i class="fa-solid fa-handshake"></i> E</th>
-                            <th><i class="fa-solid fa-times"></i> D</th>
-                            <th><i class="fa-solid fa-futbol"></i> GM</th>
-                            <th><i class="fa-solid fa-skull"></i> GS</th>
-                            <th><i class="fa-solid fa-calculator"></i> SG</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% const classificacao = calcularClassificacao(campeonato.times); %>
-                        <% classificacao.forEach((time, index) => { %>
-                            <tr class="position-<%= index + 1 %>">
-                                <td><i class="fa-solid fa-hashtag"></i> <%= index + 1 %></td>
-                                <td><%= time.nome %></td>
-                                <td><%= time.pontos %></td>
-                                <td><%= time.jogos %></td>
-                                <td><%= time.vitorias %></td>
-                                <td><%= time.empates %></td>
-                                <td><%= time.derrotas %></td>
-                                <td><%= time.golsMarcados %></td>
-                                <td><%= time.golsSofridos %></td>
-                                <td><%= time.saldoGols %></td>
+            <% if (campeonato.tipoTabela === 'pontosCorridos') { %>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO</th>
+                                <th><i class="fa-solid fa-shield-halved"></i> Time</th>
+                                <th><i class="fa-solid fa-star"></i> P</th>
+                                <th><i class="fa-solid fa-futbol"></i> J</th>
+                                <th><i class="fa-solid fa-trophy"></i> V</th>
+                                <th><i class="fa-solid fa-handshake"></i> E</th>
+                                <th><i class="fa-solid fa-times"></i> D</th>
+                                <th><i class="fa-solid fa-futbol"></i> GM</th>
+                                <th><i class="fa-solid fa-skull"></i> GS</th>
+                                <th><i class="fa-solid fa-calculator"></i> SG</th>
                             </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            <% const classificacao = calcularClassificacao(campeonato.times); %>
+                            <% classificacao.forEach((time, index) => { %>
+                                <tr class="position-<%= index + 1 %>">
+                                    <td><i class="fa-solid fa-hashtag"></i> <%= index + 1 %></td>
+                                    <td><%= time.nome %></td>
+                                    <td><%= time.pontos %></td>
+                                    <td><%= time.jogos %></td>
+                                    <td><%= time.vitorias %></td>
+                                    <td><%= time.empates %></td>
+                                    <td><%= time.derrotas %></td>
+                                    <td><%= time.golsMarcados %></td>
+                                    <td><%= time.golsSofridos %></td>
+                                    <td><%= time.saldoGols %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else if (campeonato.tipoTabela === 'grupos') { %>
+                <% campeonato.grupos.forEach((grupo, grupoIndex) => { %>
+                    <h3><%= grupo.nome %></h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO</th>
+                                    <th><i class="fa-solid fa-shield-halved"></i> Time</th>
+                                    <th><i class="fa-solid fa-star"></i> P</th>
+                                    <th><i class="fa-solid fa-futbol"></i> J</th>
+                                    <th><i class="fa-solid fa-trophy"></i> V</th>
+                                    <th><i class="fa-solid fa-handshake"></i> E</th>
+                                    <th><i class="fa-solid fa-times"></i> D</th>
+                                    <th><i class="fa-solid fa-futbol"></i> GM</th>
+                                    <th><i class="fa-solid fa-skull"></i> GS</th>
+                                    <th><i class="fa-solid fa-calculator"></i> SG</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% const classificacao = calcularClassificacao(grupo.times); %>
+                                <% classificacao.forEach((time, index) => { %>
+                                    <tr class="position-<%= index + 1 %>">
+                                        <td><i class="fa-solid fa-hashtag"></i> <%= index + 1 %></td>
+                                        <td><%= time.nome %></td>
+                                        <td><%= time.pontos %></td>
+                                        <td><%= time.jogos %></td>
+                                        <td><%= time.vitorias %></td>
+                                        <td><%= time.empates %></td>
+                                        <td><%= time.derrotas %></td>
+                                        <td><%= time.golsMarcados %></td>
+                                        <td><%= time.golsSofridos %></td>
+                                        <td><%= time.saldoGols %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% }) %>
+            <% } %>
         </div>
     </div>
 
