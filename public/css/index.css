@@ -1,0 +1,145 @@
+/* Cores para as posições na tabela */
+tr.position-1 {
+    background-color: #10b981; /* Verde vibrante para o primeiro lugar */
+    color: #fff;
+}
+
+tr.position-2 {
+    background-color: #10b98190; /* Azul vibrante para o segundo lugar */
+    color: #fff;
+}
+
+tr.position-3 {
+    background-color: #2d3748; /* Laranja vibrante para o terceiro lugar */
+    color: #fff;
+}
+
+tr.position-4 {
+    background-color: #2d3748; /* Cinza para o quarto lugar */
+    color: #fff;
+}
+
+tr.position-5 {
+    background-color: #2d3748; /* Cinza para o quinto lugar */
+    color: #fff;
+}
+
+tr:hover {
+    background-color: #00368c; /* Azul mais claro ao passar o mouse */
+    transition: background-color 0.3s ease;
+}
+/* Formulários */
+form {
+    margin-bottom: 20px;
+    background-color: #2d3748; /* Azul mais claro */
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ffffff; /* Branco */
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+
+.admin-button {
+    display: inline-block;
+    padding: 8px 16px; /* Tamanho reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+/* Estilo do botão de instalar app */
+.install-app-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff; /* Texto branco */
+    border: none;
+    border-radius: 8px; /* Bordas arredondadas */
+    cursor: pointer;
+    font-size: 14px; /* Tamanho da fonte */
+    font-weight: 600; /* Peso da fonte */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
+    z-index: 1000; /* Garante que o botão fique acima de outros elementos */
+}
+
+.install-app-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px); /* Levanta o botão */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Sombra mais intensa */
+}
+
+.install-app-button:active {
+    transform: translateY(0); /* Volta à posição original */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Volta à sombra original */
+}
+/* Adicione isso ao seu arquivo index.css */
+.campeonato-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.campeonato-list li {
+    margin: 10px 0;
+}
+
+.campeonato-list a {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    display: block;
+    padding: 10px;
+    border: 1px solid #dddddd00;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+    background-color: #141c27;
+}
+
+.campeonato-list a:hover {
+    background-color: #1d2c42;
+}
+/* Estilos para a barra de pesquisa */
+.search-bar {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 40px 10px 15px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-bar input:focus {
+    border-color: #2c3e50;
+}
+
+.search-bar i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}

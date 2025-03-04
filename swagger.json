@@ -1,0 +1,634 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "API de Gerenciamento de Tabelas de Campeonatos de Futebol e Jogos de Futebol",
+      "version": "1.0.0",
+      "description": "Bem-vindo à documentação interativa da API de Gerenciamento de Tabelas de Campeonatos de Futebol e Jogos de Futebol."
+    },
+    "servers": [
+      {
+        "url": "http://localhost:80",
+        "description": "Servidor local"
+      }
+    ],
+    "paths": {
+      "/api/campeonatos": {
+        "get": {
+          "summary": "Listar todos os campeonatos",
+          "description": "Retorna a lista de todos os campeonatos.",
+          "responses": {
+            "200": {
+              "description": "Lista de campeonatos",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Campeonato"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        },
+        "post": {
+          "summary": "Criar um novo campeonato",
+          "description": "Cria um novo campeonato com os dados fornecidos.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Campeonato"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Criar campeonato",
+                    "value": {
+                      "nome": "Campeonato Brasileiro 2023",
+                      "responsavel": "user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Campeonato criado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Campeonato"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/api/campeonatos/{id}": {
+        "get": {
+          "summary": "Obter detalhes de um campeonato",
+          "description": "Retorna os detalhes de um campeonato específico.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do campeonato",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Detalhes do campeonato",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Campeonato"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Campeonato não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        },
+        "put": {
+          "summary": "Atualizar um campeonato",
+          "description": "Atualiza os detalhes de um campeonato específico.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do campeonato",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Campeonato"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Atualizar nome e responsável",
+                    "value": {
+                      "nome": "Campeonato Brasileiro 2023",
+                      "responsavel": "user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Campeonato atualizado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Campeonato"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            },
+            "404": {
+              "description": "Campeonato não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/api/campeonatos/{id}/times": {
+        "post": {
+          "summary": "Adicionar um time a um campeonato",
+          "description": "Adiciona um novo time a um campeonato específico.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do campeonato",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Time"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Adicionar time",
+                    "value": {
+                      "nome": "Time A",
+                      "vitorias": 5,
+                      "jogos": 10,
+                      "empates": 3,
+                      "derrotas": 2,
+                      "golsMarcados": 15,
+                      "golsSofridos": 8
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Time adicionado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Time"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            },
+            "404": {
+              "description": "Campeonato não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/api/campeonatos/{id}/times/{timeId}": {
+        "put": {
+          "summary": "Atualizar um time",
+          "description": "Atualiza os detalhes de um time específico em um campeonato.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do campeonato",
+              "schema": {
+                "type": "integer"
+              }
+            },
+            {
+              "name": "timeId",
+              "in": "path",
+              "required": true,
+              "description": "ID do time",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Time"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Atualizar dados do time",
+                    "value": {
+                      "nome": "Time A",
+                      "vitorias": 5,
+                      "jogos": 10,
+                      "empates": 3,
+                      "derrotas": 2,
+                      "golsMarcados": 15,
+                      "golsSofridos": 8
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Time atualizado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Time"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            },
+            "404": {
+              "description": "Campeonato ou time não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/api/agendamentos": {
+        "get": {
+          "summary": "Listar todos os agendamentos",
+          "description": "Retorna a lista de todos os agendamentos.",
+          "responses": {
+            "200": {
+              "description": "Lista de agendamentos",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Agendamento"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        },
+        "post": {
+          "summary": "Criar um novo agendamento",
+          "description": "Cria um novo agendamento com os dados fornecidos.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agendamento"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Criar agendamento",
+                    "value": {
+                      "logo1": "logo_time_a.png",
+                      "time1": "Time A",
+                      "logo2": "logo_time_b.png",
+                      "time2": "Time B",
+                      "data": "2023-10-15",
+                      "hora": "15:00",
+                      "local": "Estádio X",
+                      "responsavel": "user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Agendamento criado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Agendamento"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      },
+      "/api/agendamentos/{id}": {
+        "get": {
+          "summary": "Obter detalhes de um agendamento",
+          "description": "Retorna os detalhes de um agendamento específico.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do agendamento",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Detalhes do agendamento",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Agendamento"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Agendamento não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        },
+        "put": {
+          "summary": "Atualizar um agendamento",
+          "description": "Atualiza os detalhes de um agendamento específico.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID do agendamento",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agendamento"
+                },
+                "examples": {
+                  "Exemplo 1": {
+                    "summary": "Atualizar dados do agendamento",
+                    "value": {
+                      "logo1": "logo_time_a.png",
+                      "time1": "Time A",
+                      "logo2": "logo_time_b.png",
+                      "time2": "Time B",
+                      "data": "2023-10-15",
+                      "hora": "15:00",
+                      "local": "Estádio X",
+                      "responsavel": "user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Agendamento atualizado com sucesso",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Agendamento"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Dados inválidos"
+            },
+            "404": {
+              "description": "Agendamento não encontrado"
+            }
+          },
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "Authorization"
+        }
+      },
+      "schemas": {
+        "Campeonato": {
+          "type": "object",
+          "properties": {
+            "nome": {
+              "type": "string",
+              "description": "Nome do campeonato",
+              "example": "Campeonato Brasileiro 2023"
+            },
+            "responsavel": {
+              "type": "string",
+              "description": "Responsável pelo campeonato",
+              "example": "user"
+            },
+            "times": {
+              "type": "array",
+              "description": "Lista de times participantes",
+              "items": {
+                "$ref": "#/components/schemas/Time"
+              }
+            }
+          },
+          "example": {
+            "nome": "Campeonato Brasileiro 2023",
+            "responsavel": "user"
+          }
+        },
+        "Time": {
+          "type": "object",
+          "properties": {
+            "nome": {
+              "type": "string",
+              "description": "Nome do time",
+              "example": "Time A"
+            },
+            "vitorias": {
+              "type": "integer",
+              "description": "Número de vitórias",
+              "example": 5
+            },
+            "jogos": {
+              "type": "integer",
+              "description": "Número de jogos",
+              "example": 10
+            },
+            "empates": {
+              "type": "integer",
+              "description": "Número de empates",
+              "example": 3
+            },
+            "derrotas": {
+              "type": "integer",
+              "description": "Número de derrotas",
+              "example": 2
+            },
+            "golsMarcados": {
+              "type": "integer",
+              "description": "Número de gols marcados",
+              "example": 15
+            },
+            "golsSofridos": {
+              "type": "integer",
+              "description": "Número de gols sofridos",
+              "example": 8
+            }
+          },
+          "example": {
+            "nome": "Time A",
+            "vitorias": 5,
+            "jogos": 10,
+            "empates": 3,
+            "derrotas": 2,
+            "golsMarcados": 15,
+            "golsSofridos": 8
+          }
+        },
+        "Agendamento": {
+          "type": "object",
+          "properties": {
+            "logo1": {
+              "type": "string",
+              "description": "Logo do primeiro time",
+              "example": "logo_time_a.png"
+            },
+            "time1": {
+              "type": "string",
+              "description": "Nome do primeiro time",
+              "example": "Time A"
+            },
+            "logo2": {
+              "type": "string",
+              "description": "Logo do segundo time",
+              "example": "logo_time_b.png"
+            },
+            "time2": {
+              "type": "string",
+              "description": "Nome do segundo time",
+              "example": "Time B"
+            },
+            "data": {
+              "type": "string",
+              "format": "date",
+              "description": "Data do jogo",
+              "example": "2023-10-15"
+            },
+            "hora": {
+              "type": "string",
+              "format": "time",
+              "description": "Hora do jogo",
+              "example": "15:00"
+            },
+            "local": {
+              "type": "string",
+              "description": "Local do jogo",
+              "example": "Estádio X"
+            },
+            "responsavel": {
+              "type": "string",
+              "description": "Responsável pelo agendamento",
+              "example": "user"
+            }
+          },
+          "example": {
+            "logo1": "logo_time_a.png",
+            "time1": "Time A",
+            "logo2": "logo_time_b.png",
+            "time2": "Time B",
+            "data": "2023-10-15",
+            "hora": "15:00",
+            "local": "Estádio X",
+            "responsavel": "user"
+          }
+        }
+      }
+    }
+  }

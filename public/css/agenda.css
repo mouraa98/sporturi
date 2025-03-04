@@ -1,0 +1,123 @@
+/* Lista de jogos */
+.jogos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Card do jogo */
+.jogo-card {
+    background: #2d3748;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Data */
+.data {
+    font-size: 14px;
+    color: #bbb;
+    margin-bottom: 10px;
+}
+
+/* Times */
+.times {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.times img {
+    height: 30px;
+    width: 30px;
+}
+
+.versus {
+    font-size: 18px;
+    color: #ffcc00;
+}
+
+/* Detalhes */
+.detalhes {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.detalhes i {
+    margin-right: 5px;
+}
+
+/* Estilo do selo "HOJE" */
+.hoje-card {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: green;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 14px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo dos selos "HOJE" e "AMANHÃ" */
+.selo-dia {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 14px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.hoje-card {
+    background-color: green;
+}
+
+.amanha-card {
+    background-color: orange;
+}
+
+/* Barra de pesquisa */
+.search-bar {
+    margin-bottom: 20px;
+    text-align: right; /* Alinha a barra de pesquisa à direita */
+}
+
+#searchInput {
+    width: 100%;
+    max-width: 300px; /* Define um tamanho fixo para a barra */
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .jogo-card {
+        padding: 12px;
+    }
+
+    .times {
+        font-size: 14px;
+    }
+
+    .detalhes {
+        font-size: 12px;
+    }
+}

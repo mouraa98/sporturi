@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Agendamento</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/editar-agenda.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png"  alt="Logo do Campeonato" ></a>
+        </div>
+        <nav>
+            <a href="/user" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <div class="main-content">
+        <div class="container">
+            <h1>Editar Agendamento</h1>
+
+
+            <!-- Formulário de Edição -->
+            <form action="/user/agenda/editar/<%= id %>" method="POST">
+                <label for="logo1">Logo do Time 1 (URL):</label>
+                <input type="text" id="logo1" name="logo1" value="<%= agendamento.logo1 %>" required>
+
+                <label for="time1">Nome do Time 1:</label>
+                <input type="text" id="time1" name="time1" value="<%= agendamento.time1 %>" required>
+
+                <label for="logo2">Logo do Time 2 (URL):</label>
+                <input type="text" id="logo2" name="logo2" value="<%= agendamento.logo2 %>" required>
+
+                <label for="time2">Nome do Time 2:</label>
+                <input type="text" id="time2" name="time2" value="<%= agendamento.time2 %>" required>
+
+                <label for="camp">Campeonato:</label>
+                <select id="camp" name="camp" required>
+                    <option value="<%= agendamento.camp %>"><%= agendamento.camp %></option>
+                    <% if (campeonatos && campeonatos.length > 0) { %>
+                        <% campeonatos.forEach((campeonato, index) => { %>
+                            <option value="<%= campeonato.nome %>"><%= campeonato.nome %></option>
+                        <% }) %>
+                    <% } else { %>
+                        <option value="">Nenhum campeonato disponível</option>
+                    <% } %>
+                </select>
+                
+
+                <label for="data">Data:</label>
+                <input type="date" id="data" name="data" value="<%= agendamento.data %>" required>
+
+                <label for="hora">Hora:</label>
+                <input type="time" id="hora" name="hora" value="<%= agendamento.hora %>" required>
+
+                <label for="local">Local:</label>
+                <input type="text" id="local" name="local" value="<%= agendamento.local %>" required>
+
+                <button type="submit" class="admin-button">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </form>
+
+            <a href="/user/agenda" class="admin-button">
+                <i class="fas fa-arrow-left"></i> Voltar para a Agenda
+            </a>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+    
+
+    
+</body>
+</html>

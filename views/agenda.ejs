@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogos</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/agenda.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
+        </div>
+        <nav>
+            
+            <a href="/" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </nav>
+    </header>
+    
+    <div class="main-content">
+        <div class="container">
+            <h1><i class="fa-solid fa-futbol"></i> Jogos</h1>
+            <!-- Barra de pesquisa -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Pesquisar jogos..." onkeyup="filtrarJogos()">
+                <i class="fas fa-search"></i>
+            </div>
+    
+            <% if (agenda && agenda.length > 0) { %>
+                <% let campeonatos = {}; %>
+    
+                <!-- Organiza jogos por campeonato -->
+                <% agenda.forEach((jogo) => { %>
+                    <% if (!campeonatos[jogo.camp]) { campeonatos[jogo.camp] = []; } %>
+                    <% campeonatos[jogo.camp].push(jogo); %>
+                <% }); %>
+    
+                <% Object.keys(campeonatos).forEach((campName) => { %>
+                    <div class="campeonato">
+                        <h2><%= campName %></h2>
+                        <div class="jogos-lista">
+                            <% campeonatos[campName].forEach((jogo) => { %>
+                                <div class="jogo-card" data-jogo="<%= jogo.data %>">
+                                    <div class="data"><%= jogo.data %> <span class="dia-semana"></span></div>
+                                    <div class="times">
+                                        <span class="time"><%= jogo.time1 %></span>
+                                        <img src="<%= jogo.logo1 %>" alt="Logo do Time 1">
+                                        <span class="versus">X</span>
+                                        <img src="<%= jogo.logo2 %>" alt="Logo do Time 2">
+                                        <span class="time"><%= jogo.time2 %></span>
+                                    </div>
+                                    <div class="detalhes">
+                                        <span><i class="fas fa-map-marker-alt"></i> <%= jogo.local %></span>
+                                        <span><i class="fas fa-clock"></i> <%= jogo.hora %></span>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p class="sem-jogos">Nenhum jogo agendado.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+    <script>
+        async function carregarResultados() {
+            try {
+                let response = await fetch('/api/resultados');
+                let resultados = await response.json();
+    
+                // Variável para rastrear se algum campeonato possui resultados
+                let campeonatosComResultado = false;
+    
+                document.querySelectorAll(".jogo-card").forEach(card => {
+                    let jogoId = card.getAttribute("data-jogo-id");
+    
+                    let resultado = resultados.find(r => r.jogoId === jogoId);
+                    if (resultado) {
+                        let resultadoSpan = card.querySelector(".resultado");
+                        let versusSpan = card.querySelector(".versus");
+    
+                        resultadoSpan.textContent = `${resultado.resultado1} X ${resultado.resultado2}`;
+                        resultadoSpan.style.display = "inline";
+                        versusSpan.style.display = "none";
+    
+                        // Marca que o campeonato com esse jogo tem resultado
+                        campeonatosComResultado = true;
+                    }
+                });
+    
+                // Se algum campeonato tem resultados, esconde campeonatos sem resultados
+                if (campeonatosComResultado) {
+                    esconderCampeonatosSemResultado();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar resultados:", error);
+            }
+        }
+    
+        // Função para esconder campeonatos que não possuem resultados visíveis
+        function esconderCampeonatosSemResultado() {
+            const campeonatos = document.querySelectorAll(".campeonato-item");
+    
+            campeonatos.forEach(campeonato => {
+                let jogos = campeonato.querySelectorAll(".jogo-card");
+                let algumResultadoExibido = false;
+    
+                jogos.forEach(card => {
+                    const resultadoSpan = card.querySelector(".resultado");
+                    if (resultadoSpan && resultadoSpan.style.display === "inline") {
+                        algumResultadoExibido = true;
+                    }
+                });
+    
+                // Esconde o campeonato se nenhum jogo tiver resultado
+                if (!algumResultadoExibido) {
+                    campeonato.style.display = "none";
+                }
+            });
+        }
+    
+        function filtrarJogos() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let jogos = document.querySelectorAll(".jogo-card");
+    
+            jogos.forEach(card => {
+                let times = card.innerText.toLowerCase();
+                if (times.includes(input)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+    
+        document.addEventListener("DOMContentLoaded", carregarResultados);
+    </script>
+    
+    
+    
+
+    <script>
+        // Função para converter a data do JSON (YYYY-MM-DD) para "DD/MM (dia abreviado)"
+        function formatarData(dataString) {
+            let partes = dataString.split('-');
+            if (partes.length !== 3) return dataString;
+    
+            let ano = parseInt(partes[0], 10);
+            let mes = parseInt(partes[1], 10) - 1;
+            let dia = parseInt(partes[2], 10);
+    
+            let dataObj = new Date(ano, mes, dia);
+            if (isNaN(dataObj)) return dataString;
+    
+            let diasSemana = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+            let diaSemana = diasSemana[dataObj.getDay()];
+    
+            return `${dia.toString().padStart(2, '0')}/${(mes + 1).toString().padStart(2, '0')} ${diaSemana}`;
+        }
+    
+        // Obter datas de hoje e amanhã no formato YYYY-MM-DD
+        function obterDataFormatada(diasAdicionais = 0) {
+            let data = new Date();
+            data.setDate(data.getDate() + diasAdicionais);
+            let ano = data.getFullYear();
+            let mes = (data.getMonth() + 1).toString().padStart(2, '0');
+            let dia = data.getDate().toString().padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
+        }
+    
+        const dataHoje = obterDataFormatada(0);
+        const dataAmanha = obterDataFormatada(1);
+    
+        // Atualizar as datas e adicionar "HOJE" ou "AMANHÃ"
+        document.querySelectorAll(".jogo-card").forEach(el => {
+            let dataElemento = el.querySelector(".data");
+            if (!dataElemento) return;
+    
+            let dataOriginal = dataElemento.textContent.trim();
+            let novaData = formatarData(dataOriginal);
+            dataElemento.innerHTML = novaData;
+    
+            // Criar selo de indicação (HOJE / AMANHÃ)
+            let selo = document.createElement("div");
+            selo.classList.add("selo-dia");
+    
+            if (dataOriginal === dataHoje) {
+                selo.classList.add("hoje-card");
+                selo.textContent = "HOJE";
+                el.style.position = "relative";
+                el.appendChild(selo);
+            } else if (dataOriginal === dataAmanha) {
+                selo.classList.add("amanha-card");
+                selo.textContent = "AMANHÃ";
+                el.style.position = "relative";
+                el.appendChild(selo);
+            }
+        });
+    </script>
+    
+</body>
+</html>

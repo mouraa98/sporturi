@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Time</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/edit-time.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Time</h1>
+
+        <% if (typeof grupoIndex !== 'undefined') { %>
+            <form action="/user/campeonatos/<%= campeonatoId %>/update-time/grupos/<%= grupoIndex %>/<%= timeIndex %>" method="POST">
+                <input type="hidden" name="grupoIndex" value="<%= grupoIndex %>">
+        <% } else { %>
+            <form action="/user/campeonatos/<%= campeonatoId %>/update-time/pontos-corridos/<%= timeIndex %>" method="POST">
+        <% } %>
+
+                <div class="form-group">
+                    <label for="nome">Nome do Time:</label>
+                    <input type="text" id="nome" name="nome" value="<%= time.nome %>" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="vitorias">Vitórias:</label>
+                        <input type="number" id="vitorias" name="vitorias" value="<%= time.vitorias %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jogos">Jogos:</label>
+                        <input type="number" id="jogos" name="jogos" value="<%= time.jogos %>" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="empates">Empates:</label>
+                        <input type="number" id="empates" name="empates" value="<%= time.empates %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="derrotas">Derrotas:</label>
+                        <input type="number" id="derrotas" name="derrotas" value="<%= time.derrotas %>" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="golsMarcados">Gols Marcados:</label>
+                        <input type="number" id="golsMarcados" name="golsMarcados" value="<%= time.golsMarcados %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="golsSofridos">Gols Sofridos:</label>
+                        <input type="number" id="golsSofridos" name="golsSofridos" value="<%= time.golsSofridos %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="timeIndex" value="<%= timeIndex %>">
+                    <button type="submit"><i class="fas fa-save"></i> Atualizar Time</button>
+                </div>
+            </form>
+
+        <% if (typeof grupoIndex !== 'undefined') { %>
+            <a href="/user/campeonatos/<%= campeonatoId %>" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar para Grupos</a>
+        <% } else { %>
+            <a href="/user/campeonatos/<%= campeonatoId %>" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar para Pontos Corridos</a>
+        <% } %>
+    </div>
+</body>
+</html>

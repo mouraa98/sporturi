@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <style>
+        /* Estilo para o popup de erro */
+        .error-popup {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
+        </div>
+        <nav>
+            <a href="/" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h1><i class="fas fa-sign-in-alt"></i> Login</h1>
+            <form id="loginForm" action="/login" method="POST">
+                <label for="username"><i class="fas fa-user"></i> Usuário:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password"><i class="fas fa-lock"></i> Senha:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            </form>
+            <div>
+                <p style="font-size:12px"><i class="fas fa-info-circle"></i> Para criar seu login de acesso <a href='https://wa.me/5598985965172?text=Ol%C3%A1%20eu%20sou%20o%20(Digite%20seu%20nome%20aqui)%20e%20gostaria%20de%20criar%20meu%20login%20para%20adicionar%20meu%20campeonato.' style="color: #4294db">clique aqui</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup de erro -->
+    <div id="errorPopup" class="error-popup">
+        <span id="errorMessage"></span>
+    </div>
+
+    <footer>
+        <p><i class="fas fa-copyright"></i> 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Função para exibir o popup de erro
+        function showErrorPopup(message) {
+            const errorPopup = document.getElementById('errorPopup');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message; // Define a mensagem de erro
+            errorPopup.style.display = 'block';
+            setTimeout(() => {
+                errorPopup.style.display = 'none';
+            }, 3000); // O popup desaparece após 3 segundos
+        }
+
+        // Captura o formulário de login
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const formData = new FormData(loginForm);
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: formData.get('username'),
+                    password: formData.get('password')
+                })
+            });
+
+            if (response.redirected) {
+                // Redireciona para a página de destino se o login for bem-sucedido
+                window.location.href = response.url;
+            } else {
+                // Exibe o popup de erro se o login falhar
+                const data = await response.json();
+                showErrorPopup(data.error); // Exibe a mensagem de erro específica
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+/* Formulários */
+form {
+    margin-bottom: 20px;
+    background-color: #2d3748; /* Azul mais claro */
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ffffff; /* Branco */
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+input, select {
+    width: 100%;
+    padding: 10px; /* Espaçamento reduzido */
+    margin-bottom: 12px;
+    border: 1px solid #1f2937; /* Bordas azuis mais escuras */
+    border-radius: 8px;
+    font-size: 0.9rem; /* Fonte menor */
+    background-color: #1f2937; /* Azul escuro */
+    color: #e0e0e0; /* Texto claro */
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #3b82f6; /* Azul vibrante ao focar */
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 10px; /* Espaçamento reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem; /* Fonte menor */
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+
+.admin-button {
+    display: inline-block;
+    padding: 8px 16px; /* Tamanho reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+
+.cancel-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.cancel-button {
+    background-color: #f44336;
+    color: white;
+    text-decoration: none;
+    margin-top: 30px;
+}
+
+
+/* Menu de navegação */
+.menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu li {
+    margin-right: 20px;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.menu li a:hover {
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+}
+
+.menu li a i {
+    margin-right: 8px;
+}
+
+/* Botão de menu hambúrguer (para telas pequenas) */
+.menu-toggle {
+    display: none; /* Oculta o botão em telas maiores */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.hamburger {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: #ffffff;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    width: 25px;
+    height: 3px;
+    background-color: #ffffff;
+    position: absolute;
+    left: 0;
+    transition: transform 0.3s ease;
+}
+
+.hamburger::before {
+    top: -8px;
+}
+
+.hamburger::after {
+    top: 8px;
+}
+
+/* Estilos para telas pequenas (menu hambúrguer) */
+@media (max-width: 768px) {
+    .menu {
+        display: none; /* Oculta o menu em telas pequenas */
+        flex-direction: column;
+        background-color: #1f2937; /* Azul escuro */
+        position: absolute;
+        top: 80px; /* Ajuste conforme a altura do header */
+        left: 0;
+        width: 100%;
+        padding: 10px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .menu li {
+        margin: 0;
+        text-align: left;
+        padding-left: 20px; /* Alinhamento à esquerda */
+    }
+
+    .menu li a {
+        padding: 12px;
+        display: block;
+    }
+
+    .menu-toggle {
+        display: block; /* Exibe o botão em telas pequenas */
+        margin-left: auto; /* Move o botão para a direita */
+    }
+
+    /* Estilo quando o menu está aberto */
+    .menu.active {
+        display: flex;
+    }
+
+    /* Animação do ícone hambúrguer */
+    .menu-toggle.active .hamburger {
+        background-color: transparent;
+    }
+
+    .menu-toggle.active .hamburger::before {
+        transform: rotate(45deg);
+        top: 0;
+    }
+
+    .menu-toggle.active .hamburger::after {
+        transform: rotate(-45deg);
+        top: 0;
+    }
+}

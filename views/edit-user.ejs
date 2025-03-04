@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuário</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/edit-user.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
+        </div>
+        <nav>
+            <button class="menu-toggle" aria-label="Abrir menu">
+                <span class="hamburger"></span>
+            </button>
+            <ul class="menu">
+                <li><a href="/admin/master"><i class="fas fa-home"></i> Master</a></li>
+                <li><a href="/admin/adicionar-campeonato"><i class="fas fa-trophy"></i> Adicionar Campeonato</a></li>
+                <li><a href="/admin/tokens"><i class="fas fa-key"></i> Tokens</a></li>
+                <li><a href="/admin/campeonatos"><i class="fas fa-trophy"></i> Campeonatos</a></li>
+                <li><a href="/admin/usuarios"><i class="fas fa-users"></i> Usuários</a></li>
+                <li><a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-edit"></i> Editar Usuário</h2>
+
+            <!-- Formulário de edição -->
+            <form action="/admin/users/update/<%= user.id %>" method="POST">
+                <div class="form-group">
+                    <label for="username">Nome de Usuário:</label>
+                    <input type="text" id="username" name="username" value="<%= user.username %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Nova Senha:</label>
+                    <input type="password" id="password" name="password" placeholder="Deixe em branco para manter a senha atual">
+                </div>
+
+                <div class="form-group">
+                    <button type="submit"><i class="fas fa-save"></i> Salvar Alterações</button>
+                    <a href="/admin/usuarios" class="cancel-button"><i class="fas fa-times"></i> Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tabela de Campeonatos. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const menu = document.querySelector('.menu');
+
+            menuToggle.addEventListener('click', () => {
+                menu.classList.toggle('active');
+                menuToggle.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>

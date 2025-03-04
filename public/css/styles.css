@@ -1,0 +1,337 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos globais */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212; /* Fundo escuro moderno */
+    color: #e0e0e0; /* Texto claro */
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-size: 14px; /* Tamanho base da fonte */
+}
+
+/* Cabeçalho */
+header {
+    background-color: #1f2937; /* Azul escuro moderno */
+    color: #ffffff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+header .logo img {
+    height: 50px; /* Tamanho reduzido */
+    /*filter: brightness(0) invert(1); /* Logo branca */
+}
+
+header nav .admin-button {
+    padding: 8px 16px; /* Tamanho reduzido */
+    background-color: #3b82f6; /* Azul vibrante */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem; /* Fonte menor */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+header nav .admin-button:hover {
+    background-color: #2563eb; /* Azul mais escuro */
+    transform: translateY(-2px);
+}
+/* Rodapé */
+/* Garante que a página ocupe toda a altura da tela */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Rodapé sempre fixo no final */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1f2937;
+    color: #ffffff;
+    text-align: center;
+    padding: 15px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    font-size: 0.9rem;
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    padding-bottom: 60px; /* Ajusta conforme a altura do rodapé */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1f2937; /* Azul escuro moderno */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+h1, h2, h3 {
+    color: #ffffff; /* Branco */
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+h1 {
+    font-size: 1.8rem; /* Tamanho reduzido */
+}
+
+h2 {
+    font-size: 1.5rem; /* Tamanho reduzido */
+}
+
+h3 {
+    font-size: 1.2rem; /* Tamanho reduzido */
+}
+
+/* Tabela responsiva */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2d3748; /* Azul mais claro */
+    min-width: 600px;
+}
+
+th, td {
+    padding: 10px; /* Espaçamento reduzido */
+    text-align: left;
+    border: 1px solid #1f2937; /* Bordas azuis mais escuras */
+    font-size: 0.9rem; /* Fonte menor */
+}
+
+th {
+    background-color: #1f2937; /* Azul escuro */
+    color: #ffffff;
+    font-weight: 700;
+}
+/* Mensagens de sucesso e erro */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px; /* Aumentar o padding */
+    border-radius: 20px; /* Aumentar o arredondamento */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Sombra mais sutil */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 300px; /* Largura ligeiramente maior */
+    font-size: 1rem; /* Tamanho da fonte ligeiramente maior */
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards; /* Animação de entrada */
+    transition: background-color 0.3s ease; /* Transição de cores */
+}
+
+.popup.success {
+    background-color: #22c55e; /* Verde mais claro e moderno */
+    color: #fff;
+}
+
+.popup.error {
+    background-color: #dc2626; /* Vermelho mais suave e moderno */
+    color: #fff;
+}
+
+.popup button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.2rem; /* Tamanho da fonte ligeiramente maior */
+    transition: transform 0.2s ease; /* Adicionar transição ao botão */
+}
+
+.popup button:hover {
+    transform: scale(1.1); /* Efeito de hover no botão */
+}
+
+.popup i {
+    margin-right: 10px; /* Espaço entre o ícone e o texto */
+    font-size: 1.2rem; /* Tamanho do ícone ligeiramente maior */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%); /* Início ligeiramente acima */
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -40%); /* Fim ligeiramente acima */
+    }
+}
+/* Estilos para telas pequenas (menu hambúrguer) */
+@media (max-width: 768px) {
+    .menu {
+        display: none; /* Oculta o menu em telas pequenas */
+        flex-direction: column;
+        background-color: #1f2937; /* Azul escuro */
+        position: absolute;
+        top: 80px; /* Ajuste conforme a altura do header */
+        left: 0;
+        width: 100%;
+        padding: 10px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .menu li {
+        margin: 0;
+        text-align: left;
+        padding-left: 20px; /* Alinhamento à esquerda */
+    }
+
+    .menu li a {
+        padding: 12px;
+        display: block;
+    }
+
+    .menu-toggle {
+        display: block; /* Exibe o botão em telas pequenas */
+        margin-left: auto; /* Move o botão para a direita */
+    }
+
+    /* Estilo quando o menu está aberto */
+    .menu.active {
+        display: flex;
+    }
+
+    /* Animação do ícone hambúrguer */
+    .menu-toggle.active .hamburger {
+        background-color: transparent;
+    }
+
+    .menu-toggle.active .hamburger::before {
+        transform: rotate(45deg);
+        top: 0;
+    }
+
+    .menu-toggle.active .hamburger::after {
+        transform: rotate(-45deg);
+        top: 0;
+    }
+}
+/* Responsividade */
+@media (max-width: 768px) {
+    header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    header .logo img {
+        margin-bottom: 0;
+    }
+
+    header nav .admin-button {
+        padding: 8px 16px;
+        font-size: 0.8rem; /* Fonte menor */
+    }
+
+    h1 {
+        font-size: 1.5rem; /* Tamanho reduzido */
+    }
+
+    h2 {
+        font-size: 1.3rem; /* Tamanho reduzido */
+    }
+
+    table, th, td {
+        font-size: 0.8rem; /* Fonte menor */
+    }
+
+    input, button {
+        font-size: 0.8rem; /* Fonte menor */
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.3rem; /* Tamanho reduzido */
+    }
+
+    h2 {
+        font-size: 1.1rem; /* Tamanho reduzido */
+    }
+
+    table, th, td {
+        font-size: 0.75rem; /* Fonte menor */
+    }
+
+    input, button {
+        font-size: 0.75rem; /* Fonte menor */
+    }
+
+    header nav .admin-button {
+        padding: 6px 12px;
+        font-size: 0.8rem; /* Fonte menor */
+    }
+}
+
+/* Pseudo-elemento para o background */
+body::before {
+    content: '';
+    position: fixed; /* Fixa o fundo na janela do navegador */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/background-futebol.jpg'); /* Substitua pelo caminho da sua imagem */
+    background-size: cover; /* Garante que a imagem cubra toda a área */
+    background-position: center; /* Centraliza a imagem */
+    opacity: 0.3; /* Opacidade de 30% */
+    z-index: -1; /* Coloca o fundo atrás do conteúdo */
+}
+
+/* Outros estilos do body, se necessário */
+body {
+    /* ... seus outros estilos ... */
+}
+
+

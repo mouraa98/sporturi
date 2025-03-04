@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <!-- No <head> do admin.ejs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
+        </div>
+        <nav>
+            <button class="menu-toggle" aria-label="Abrir menu">
+                <span class="hamburger"></span>
+            </button>
+
+            <ul class="menu">
+                <li><a href="/admin/master"><i class="fas fa-home"></i> Master</a></li>
+                <li><a href="/admin/adicionar-campeonato"><i class="fas fa-plus"></i> Adicionar Campeonato</a></li>
+                <li><a href="/admin/tokens"><i class="fas fa-key"></i> Tokens</a></li>
+                <li><a href="/admin/campeonatos"><i class="fas fa-trophy"></i> Campeonatos</a></li>
+                <li><a href="/admin/usuarios"><i class="fas fa-users"></i> Usuários</a></li>
+                <li><a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
+        </ul>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <% if (page === 'master') { %>
+                <h1><i class="fas fa-home"></i> Master</h1>
+                <p>Bem-vindo ao painel de administração.</p>
+            
+                <!-- Estatísticas -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <h2><i class="fas fa-users"></i> Usuários</h2>
+                        <p>Total: <%= users.length %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h2><i class="fas fa-trophy"></i> Campeonatos</h2>
+                        <p>Total: <%= campeonatos.length %></p>
+                    </div>
+                    <div class="stat-card">
+                        <h2><i class="fas fa-key"></i> Tokens</h2>
+                        <p>Total: <%= tokens.length %></p>
+                    </div>
+                </div>
+            
+                <!-- Gráficos -->
+                 <!-- Adicione o canvas para o gráfico -->
+                 <div style="width: 80%; margin: 0 auto;">
+                    <canvas id="accessChart"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Dados do accessData passados pelo backend
+                        const accessData = <%- JSON.stringify(accessData || { home: 0, agenda: 0 }) %>;
+                        console.log('Dados de acesso no frontend:', accessData); // Log para depuração
+            
+                        // Configuração do gráfico
+                        const ctx = document.getElementById('accessChart').getContext('2d');
+                        const accessChart = new Chart(ctx, {
+                            type: 'doughnut', // Tipo de gráfico (barras)
+                            data: {
+                                labels: ['Home', 'Agenda'], // Rótulos dos dados
+                                datasets: [{
+                                    label: 'Acessos',
+                                    data: [accessData.home, accessData.agenda], // Dados de acesso
+                                    backgroundColor: [
+                                        'rgba(75, 192, 192, 0.2)', // Cor para Home
+                                        'rgba(153, 102, 255, 0.2)' // Cor para Agenda
+                                    ],
+                                    borderColor: [
+                                        'rgba(75, 192, 192, 1)', // Cor da borda para Home
+                                        'rgba(153, 102, 255, 1)' // Cor da borda para Agenda
+                                    ],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true // Começa o eixo Y do zero
+                                    }
+                                },
+                                responsive: true, // Torna o gráfico responsivo
+                                plugins: {
+                                    legend: {
+                                        display: true, // Exibe a legenda
+                                        position: 'top'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Acessos às Páginas' // Título do gráfico
+                                    }
+                                }
+                            }
+                        });
+                    });
+                </script>
+            
+            <% } else if (page === 'adicionar-campeonato') { %>
+                <h1><i class="fas fa-plus"></i> Adicionar Campeonato</h1>
+                <form action="/admin/campeonatos/add" method="POST">
+                    <div class="form-group">
+                        <label for="nome">Nome do Campeonato:</label>
+                        <input type="text" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="responsavel">Responsável:</label>
+                        <select id="responsavel" name="responsavel" required>
+                            <% users.forEach(user => { %>
+                                <option value="<%= user.username %>"><%= user.username %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoTabela">Tipo de Tabela:</label>
+                        <select id="tipoTabela" name="tipoTabela" required>
+                            <option value="pontosCorridos">Pontos Corridos</option>
+                            <option value="grupos">Grupos</option>
+                        </select>
+                    </div>
+                    <button type="submit"><i class="fas fa-save"></i> Salvar</button>
+                </form>
+            <% } else if (page === 'tokens') { %>
+                <h1><i class="fas fa-key"></i> Tokens</h1>
+                <div class="tokens-list">
+                    <% tokens.forEach(token => { %>
+                        <div class="token-card">
+                            <p><%= token %></p>
+                            <form action="/admin/api-keys/revoke" method="POST">
+                                <input type="hidden" name="token" value="<%= token %>">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Revogar</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+                <form action="/admin/api-keys/create" method="POST">
+                    <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Token</button>
+                </form>
+            <% } else if (page === 'campeonatos') { %>
+                <h1><i class="fas fa-trophy"></i> Campeonatos</h1>
+                <div class="campeonatos-list">
+                    <% campeonatos.forEach((campeonato, index) => { %>
+                        <div class="campeonato-card">
+                            <h2><%= campeonato.nome %></h2>
+                            <p>Responsável: <%= campeonato.responsavel %></p>
+                            <p>Tipo de Tabela: <%= campeonato.tipoTabela %></p>
+                            <form action="/admin/campeonatos/delete/<%= index %>" method="POST">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else if (page === 'usuarios') { %>
+                <h1><i class="fas fa-users"></i> Usuários</h1>
+                <div class="usuarios-list">
+                    <% users.forEach(user => { %>
+                        <div class="usuario-card">
+                            <h2><%= user.username %></h2>
+                            <form action="/admin/users/delete/<%= user.id %>" method="POST">
+                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                            </form>
+                        </div>
+                    <% }) %>
+                </div>
+                <form action="/admin/users/create" method="POST">
+                    <div class="form-group">
+                        <label for="username">Nome de Usuário:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Usuário</button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Função para copiar o token
+        function copyToken(token) {
+            // Cria um elemento temporário para copiar o token
+            const tempInput = document.createElement('input');
+            tempInput.value = token;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Feedback visual (opcional)
+            alert('Token copiado: ' + token);
+        }
+    </script>
+
+<script>document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const menu = document.querySelector('.menu');
+
+    menuToggle.addEventListener('click', () => {
+        menu.classList.toggle('active');
+        menuToggle.classList.toggle('active');
+    });
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        updateUserList(); // Atualiza a lista de usuários ao carregar a página
+    });
+</script>
+
+</body>
+</html>

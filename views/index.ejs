@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SporTuri</title>
+    
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/index.css"> <!-- Novo arquivo CSS -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png"  alt="Logo do Campeonato" ></a>
+        </div>
+        <nav>
+             <!-- Botão para ver a agenda de jogos -->
+             <a href="/agenda" class="admin-button" style="margin-bottom: 20px;">
+                <i class="fas fa-calendar-alt"></i> Ver Jogos
+            </a>
+            <a href="/login" class="admin-button"><i class="fa-solid fa-user-lock"></i> Login</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h2><i class="fa-solid fa-trophy"></i> Campeonatos</h2>
+    
+            <!-- Barra de pesquisa -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Pesquisar campeonato..." />
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+    
+            <% if (campeonatos.length === 0) { %>
+                <div class="empty-message">
+                    <p style='font-size:12px'><i class="fa-solid fa-circle-exclamation"></i> Nenhum campeonato encontrado.</p>
+                </div>
+            <% } else { %>
+                <ul class="campeonato-list" id="campeonatoList">
+                    <% campeonatos.forEach((campeonato) => { %>
+                        <li class="campeonato-item">
+                            <a href="/campeonato/<%= campeonato.nome %>">
+                                <i class="fa-solid fa-futbol"></i> <%= campeonato.nome %>
+                            </a>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const campeonatoList = document.getElementById('campeonatoList');
+            const campeonatoItems = campeonatoList.getElementsByClassName('campeonato-item');
+    
+            searchInput.addEventListener('input', function () {
+                const searchTerm = searchInput.value.toLowerCase();
+    
+                // Percorre todos os itens da lista de campeonatos
+                Array.from(campeonatoItems).forEach(function (item) {
+                    const campeonatoName = item.textContent.toLowerCase();
+    
+                    // Mostra ou esconde o item com base no termo de pesquisa
+                    if (campeonatoName.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Falha ao registrar o Service Worker:', error);
+                    });
+            });
+        }
+
+        let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+
+    // Cria o botão de instalação
+    const installButton = document.createElement('button');
+    installButton.innerHTML = '<i class="fa-solid fa-download"></i> Instalar App';
+    
+    // Adiciona uma classe ao botão para facilitar a estilização
+    installButton.classList.add('install-app-button');
+
+    // Adiciona o botão ao corpo da página
+    document.body.appendChild(installButton);
+
+    // Evento de clique no botão
+    installButton.addEventListener('click', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('Usuário aceitou a instalação');
+            } else {
+                console.log('Usuário recusou a instalação');
+            }
+            deferredPrompt = null;
+        });
+    });
+});
+    </script>
+</body>
+</html>

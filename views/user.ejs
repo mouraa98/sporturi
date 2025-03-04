@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Campeonatos</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/user.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
+        </div>
+        <nav>
+            <a href="/user/agenda" class="admin-button"><i class="fas fa-calendar-alt"></i> Criar agenda</a>
+            <a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <h1><i class="fas fa-trophy"></i> Meus Campeonatos</h1>
+            <p>Bem-vindo, <%= username %>!</p>
+
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="popup success">
+                    <p><i class="fas fa-check-circle"></i> <%= success %></p>
+                    <button onclick="closePopup()"><i class="fas fa-times"></i></button>
+                </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="popup error">
+                    <p><i class="fas fa-exclamation-circle"></i> <%= error %></p>
+                    <button onclick="closePopup()"><i class="fas fa-times"></i></button>
+                </div>
+            <% } %>
+
+            <% if (campeonatos && campeonatos.length > 0) { %>
+                <ul class="campeonato-list">
+                    <% campeonatos.forEach((campeonato, index) => { %>
+                        <% if (campeonato) { %>
+                            <li class="campeonato-item">
+                                <div class="campeonato-header" onclick="toggleCampeonato(<%= index %>)">
+                                    <h2><i class="fas fa-trophy"></i> <%= campeonato.nome %></h2>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="campeonato-content" id="campeonato-<%= index %>">
+                                    <!-- Verifica o tipo de tabela -->
+                                    <% if (campeonato.tipoTabela === 'grupos') { %>
+                                        <!-- Formulário para adicionar grupos -->
+                                        <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/add-grupo" method="POST">
+                                            <label for="nomeGrupo"><i class="fas fa-users"></i> Nome do Grupo:</label>
+                                            <input type="text" id="nomeGrupo" name="nomeGrupo" required>
+                                            <button type="submit"><i class="fas fa-plus"></i> Adicionar Grupo</button>
+                                        </form>
+
+                                        <!-- Lista de grupos -->
+                                        <% if (campeonato.grupos && campeonato.grupos.length > 0) { %>
+                                            <% campeonato.grupos.forEach((grupo, grupoIndex) => { %>
+                                                <div class="grupo-item">
+                                                    <div class="grupo-header" onclick="toggleGrupo(<%= index %>, <%= grupoIndex %>)">
+                                                        <h3><i class="fas fa-users"></i> <%= grupo.nome %></h3>
+                                                        <i class="fas fa-chevron-down"></i>
+                                                        <!-- Botão para excluir o grupo -->
+                                                        <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/delete-grupo/<%= grupoIndex %>" method="POST" style="display: inline;">
+                                                            <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir Grupo</button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="grupo-content" id="grupo-<%= index %>-<%= grupoIndex %>">
+                                                        <!-- Formulário para adicionar times ao grupo -->
+                                                        <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/add-time/<%= grupoIndex %>" method="POST">
+                                                            <!-- Campos ocultos para manter o estado -->
+                                                            <input type="hidden" name="campeonatoIndex" value="<%= index %>">
+                                                            <input type="hidden" name="grupoIndex" value="<%= grupoIndex %>">
+                                                        
+                                                            <!-- Campos do formulário -->
+                                                            <label for="nome"><i class="fas fa-shield-alt"></i> Nome do Time:</label>
+                                                            <input type="text" id="nome" name="nome" required>
+                                                        
+                                                            <label for="vitorias"><i class="fas fa-trophy"></i> Vitórias:</label>
+                                                            <input type="number" id="vitorias" name="vitorias" required>
+                                                        
+                                                            <label for="jogos"><i class="fas fa-futbol"></i> Jogos:</label>
+                                                            <input type="number" id="jogos" name="jogos" required>
+                                                        
+                                                            <label for="empates"><i class="fas fa-handshake"></i> Empates:</label>
+                                                            <input type="number" id="empates" name="empates" required>
+                                                        
+                                                            <label for="derrotas"><i class="fas fa-times"></i> Derrotas:</label>
+                                                            <input type="number" id="derrotas" name="derrotas" required>
+                                                        
+                                                            <label for="golsMarcados"><i class="fas fa-futbol"></i> Gols Marcados:</label>
+                                                            <input type="number" id="golsMarcados" name="golsMarcados" required>
+                                                        
+                                                            <label for="golsSofridos"><i class="fas fa-skull"></i> Gols Sofridos:</label>
+                                                            <input type="number" id="golsSofridos" name="golsSofridos" required>
+                                                        
+                                                            <button type="submit"><i class="fas fa-plus"></i> Adicionar Time</button>
+                                                        </form>
+                                                        <!-- Tabela de times do grupo -->
+                                                        <div class="table-responsive">
+                                                            <table>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th><i class="fas fa-shield-alt"></i> Time</th>
+                                                                        <th><i class="fas fa-futbol"></i> Jogos</th>
+                                                                        <th><i class="fas fa-trophy"></i> Vitórias</th>
+                                                                        <th><i class="fas fa-handshake"></i> Empates</th>
+                                                                        <th><i class="fas fa-times"></i> Derrotas</th>
+                                                                        <th><i class="fas fa-futbol"></i> Gols Marcados</th>
+                                                                        <th><i class="fas fa-skull"></i> Gols Sofridos</th>
+                                                                        <th><i class="fas fa-cog"></i> Ações</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <% if (grupo.times && grupo.times.length > 0) { %>
+                                                                        <% grupo.times.forEach((time, timeIndex) => { %>
+                                                                            <tr>
+                                                                                <td><i class="fas fa-shield-alt"></i> <%= time.nome %></td>
+                                                                                <td><%= time.jogos %></td>
+                                                                                <td><%= time.vitorias %></td>
+                                                                                <td><%= time.empates %></td>
+                                                                                <td><%= time.derrotas %></td>
+                                                                                <td><%= time.golsMarcados %></td>
+                                                                                <td><%= time.golsSofridos %></td>
+                                                                                <td>
+                                                                                    <a href="/user/campeonatos/<%= userCampeonatoIds[index] %>/edit-time/grupos/<%= grupoIndex %>/<%= timeIndex %>" class="admin-button"><i class="fas fa-edit"></i> Editar</a>
+                                                                                    <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/delete-time/<%= grupoIndex %>/<%= timeIndex %>" method="POST" style="margin-bottom: 0px; padding: 6px; box-shadow: none;">
+                                                                                        <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                                                                                    </form>
+                                                                                </td>
+                                                                            </tr>
+                                                                        <% }) %>
+                                                                    <% } else { %>
+                                                                        <tr>
+                                                                            <td colspan="8">Nenhum time cadastrado.</td>
+                                                                        </tr>
+                                                                    <% } %>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% }) %>
+                                        <% } %>
+                                    <% } else if (campeonato.tipoTabela === 'pontosCorridos') { %>
+                                        <!-- Formulário para adicionar times (pontos corridos) -->
+                                        <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/add-time" method="POST">
+                                            <label for="nome"><i class="fas fa-shield-alt"></i> Nome do Time:</label>
+                                            <input type="text" id="nome" name="nome" required>
+
+                                            <label for="vitorias"><i class="fas fa-trophy"></i> Vitórias:</label>
+                                            <input type="number" id="vitorias" name="vitorias" required>
+
+                                            <label for="jogos"><i class="fas fa-futbol"></i> Jogos:</label>
+                                            <input type="number" id="jogos" name="jogos" required>
+
+                                            <label for="empates"><i class="fas fa-handshake"></i> Empates:</label>
+                                            <input type="number" id="empates" name="empates" required>
+
+                                            <label for="derrotas"><i class="fas fa-times"></i> Derrotas:</label>
+                                            <input type="number" id="derrotas" name="derrotas" required>
+
+                                            <label for="golsMarcados"><i class="fas fa-futbol"></i> Gols Marcados:</label>
+                                            <input type="number" id="golsMarcados" name="golsMarcados" required>
+
+                                            <label for="golsSofridos"><i class="fas fa-skull"></i> Gols Sofridos:</label>
+                                            <input type="number" id="golsSofridos" name="golsSofridos" required>
+
+                                            <button type="submit"><i class="fas fa-plus"></i> Adicionar Time</button>
+                                        </form>
+
+                                        <!-- Tabela de times (pontos corridos) -->
+                                        <div class="table-responsive">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th><i class="fas fa-shield-alt"></i> Time</th>
+                                                        <th><i class="fas fa-futbol"></i> Jogos</th>
+                                                        <th><i class="fas fa-trophy"></i> Vitórias</th>
+                                                        <th><i class="fas fa-handshake"></i> Empates</th>
+                                                        <th><i class="fas fa-times"></i> Derrotas</th>
+                                                        <th><i class="fas fa-futbol"></i> Gols Marcados</th>
+                                                        <th><i class="fas fa-skull"></i> Gols Sofridos</th>
+                                                        <th><i class="fas fa-cog"></i> Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% if (campeonato.times && campeonato.times.length > 0) { %>
+                                                        <% campeonato.times.forEach((time, timeIndex) => { %>
+                                                            <tr>
+                                                                <td><i class="fas fa-shield-alt"></i> <%= time.nome %></td>
+                                                                <td><%= time.jogos %></td>
+                                                                <td><%= time.vitorias %></td>
+                                                                <td><%= time.empates %></td>
+                                                                <td><%= time.derrotas %></td>
+                                                                <td><%= time.golsMarcados %></td>
+                                                                <td><%= time.golsSofridos %></td>
+                                                                <td>
+                                                                    <a href="/user/campeonatos/<%= userCampeonatoIds[index] %>/edit-time/pontos-corridos/<%= timeIndex %>" class="admin-button"><i class="fas fa-edit"></i> Editar</a>
+                                                                    <form action="/user/campeonatos/<%= userCampeonatoIds[index] %>/delete-time/<%= timeIndex %>" method="POST" style="margin-bottom: 0px; padding: 6px; box-shadow: none;">
+                                                                        <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        <% }) %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td colspan="8">Nenhum time cadastrado.</td>
+                                                        </tr>
+                                                    <% } %>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </li>
+                        <% } %>
+                    <% }) %>
+                </ul>
+            <% } else { %>
+                <p>Nenhum campeonato encontrado.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        <p><i class="fas fa-copyright"></i> 2025 SporTuri. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        function closePopup() {
+            document.querySelector('.popup').style.display = 'none';
+        }
+
+        function toggleCampeonato(index) {
+            const content = document.getElementById(`campeonato-${index}`);
+            const icon = content.previousElementSibling.querySelector('i');
+
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        function toggleGrupo(campeonatoIndex, grupoIndex) {
+            const content = document.getElementById(`grupo-${campeonatoIndex}-${grupoIndex}`);
+            const icon = content.previousElementSibling.querySelector('i');
+
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+    </script>
+    <script>
+        // Função para abrir um campeonato e grupo específicos
+        function openCampeonatoAndGroup(campeonatoIndex, grupoIndex) {
+            // Abre o campeonato
+            const campeonatoContent = document.getElementById(`campeonato-${campeonatoIndex}`);
+            if (campeonatoContent) {
+                campeonatoContent.style.display = 'block';
+                const campeonatoIcon = campeonatoContent.previousElementSibling.querySelector('i');
+                campeonatoIcon.classList.remove('fa-chevron-down');
+                campeonatoIcon.classList.add('fa-chevron-up');
+            }
+    
+            // Abre o grupo
+            const grupoContent = document.getElementById(`grupo-${campeonatoIndex}-${grupoIndex}`);
+            if (grupoContent) {
+                grupoContent.style.display = 'block';
+                const grupoIcon = grupoContent.previousElementSibling.querySelector('i');
+                grupoIcon.classList.remove('fa-chevron-down');
+                grupoIcon.classList.add('fa-chevron-up');
+            }
+        }
+    
+        // Verifica os parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const campeonatoIndex = urlParams.get('campeonatoIndex');
+        const grupoIndex = urlParams.get('grupoIndex');
+    
+        // Se os parâmetros existirem, abre o campeonato e o grupo correspondentes
+        if (campeonatoIndex !== null && grupoIndex !== null) {
+            openCampeonatoAndGroup(campeonatoIndex, grupoIndex);
+        }
+    </script>
+    <script>
+        function closePopup() {
+            document.querySelector('.popup').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
