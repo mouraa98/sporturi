@@ -57,6 +57,15 @@
                                         <span><i class="fas fa-map-marker-alt"></i> <%= jogo.local %></span>
                                         <span><i class="fas fa-clock"></i> <%= jogo.hora %></span>
                                     </div>
+                                    <button class="compartilhar-btn" 
+                                            data-time1="<%= jogo.time1 %>" 
+                                            data-logo1="<%= jogo.logo1 %>" 
+                                            data-time2="<%= jogo.time2 %>" 
+                                            data-logo2="<%= jogo.logo2 %>" 
+                                            data-data="<%= jogo.data %>" 
+                                            data-local="<%= jogo.local %>" 
+                                            data-hora="<%= jogo.hora %>"
+                                            data-campeonato="<%= jogo.camp %>">Compartilhar</button>
                                 </div>
                             <% }); %>
                         </div>
@@ -71,82 +80,6 @@
     <footer>
         <p>&copy; 2025 SporTuri. Todos os direitos reservados.</p>
     </footer>
-    <script>
-        async function carregarResultados() {
-            try {
-                let response = await fetch('/api/resultados');
-                let resultados = await response.json();
-    
-                // Variável para rastrear se algum campeonato possui resultados
-                let campeonatosComResultado = false;
-    
-                document.querySelectorAll(".jogo-card").forEach(card => {
-                    let jogoId = card.getAttribute("data-jogo-id");
-    
-                    let resultado = resultados.find(r => r.jogoId === jogoId);
-                    if (resultado) {
-                        let resultadoSpan = card.querySelector(".resultado");
-                        let versusSpan = card.querySelector(".versus");
-    
-                        resultadoSpan.textContent = `${resultado.resultado1} X ${resultado.resultado2}`;
-                        resultadoSpan.style.display = "inline";
-                        versusSpan.style.display = "none";
-    
-                        // Marca que o campeonato com esse jogo tem resultado
-                        campeonatosComResultado = true;
-                    }
-                });
-    
-                // Se algum campeonato tem resultados, esconde campeonatos sem resultados
-                if (campeonatosComResultado) {
-                    esconderCampeonatosSemResultado();
-                }
-            } catch (error) {
-                console.error("Erro ao carregar resultados:", error);
-            }
-        }
-    
-        // Função para esconder campeonatos que não possuem resultados visíveis
-        function esconderCampeonatosSemResultado() {
-            const campeonatos = document.querySelectorAll(".campeonato-item");
-    
-            campeonatos.forEach(campeonato => {
-                let jogos = campeonato.querySelectorAll(".jogo-card");
-                let algumResultadoExibido = false;
-    
-                jogos.forEach(card => {
-                    const resultadoSpan = card.querySelector(".resultado");
-                    if (resultadoSpan && resultadoSpan.style.display === "inline") {
-                        algumResultadoExibido = true;
-                    }
-                });
-    
-                // Esconde o campeonato se nenhum jogo tiver resultado
-                if (!algumResultadoExibido) {
-                    campeonato.style.display = "none";
-                }
-            });
-        }
-    
-        function filtrarJogos() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let jogos = document.querySelectorAll(".jogo-card");
-    
-            jogos.forEach(card => {
-                let times = card.innerText.toLowerCase();
-                if (times.includes(input)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-        }
-    
-        document.addEventListener("DOMContentLoaded", carregarResultados);
-    </script>
-    
-    
-    
 
     <script>
         // Função para converter a data do JSON (YYYY-MM-DD) para "DD/MM (dia abreviado)"
@@ -166,7 +99,6 @@
     
             return `${dia.toString().padStart(2, '0')}/${(mes + 1).toString().padStart(2, '0')} ${diaSemana}`;
         }
-    
         // Obter datas de hoje e amanhã no formato YYYY-MM-DD
         function obterDataFormatada(diasAdicionais = 0) {
             let data = new Date();
@@ -174,8 +106,12 @@
             let ano = data.getFullYear();
             let mes = (data.getMonth() + 1).toString().padStart(2, '0');
             let dia = data.getDate().toString().padStart(2, '0');
+
+            
             return `${ano}-${mes}-${dia}`;
         }
+        
+           
     
         const dataHoje = obterDataFormatada(0);
         const dataAmanha = obterDataFormatada(1);
@@ -206,6 +142,212 @@
             }
         });
     </script>
-    
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    function carregarImagem(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                console.log("Imagem carregada com sucesso:", src);
+                resolve(img);
+            };
+            img.onerror = (err) => {
+                console.error("Erro ao carregar imagem:", src, err);
+                reject(err);
+            };
+
+            if (src.endsWith('.svg')) {
+                fetch(src)
+                    .then(response => response.text())
+                    .then(svgData => {
+                        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                    })
+                    .catch(error => reject(error));
+            } else {
+                img.src = src;
+            }
+        });
+    }
+
+    async function gerarImagem(botao, time1, logo1, time2, logo2, data, local, hora, campeonato) {
+        try {
+            console.log("Iniciando geração de imagem...");
+            const canvas = document.createElement("canvas");
+            canvas.width = 1080;
+            canvas.height = 1350;
+            const ctx = canvas.getContext("2d");
+
+            const fundo = await carregarImagem("/assets/flyer.png");
+            const logoSite = await carregarImagem("/assets/logo.png");
+            const img1 = await carregarImagem(logo1);
+            const img2 = await carregarImagem(logo2);
+            const iconeMapa = await carregarImagem("/assets/icons/localizacao.svg");
+            const iconeCalendario = await carregarImagem("/assets/icons/calendario.svg");
+            const iconeCampeonato = await carregarImagem("/assets/icons/trophy.svg");
+            const iconeRelogio = await carregarImagem("/assets/icons/relogio.svg");
+
+            if (!fundo) throw new Error("Imagem de fundo não carregada.");
+            if (!logoSite) throw new Error("Logo do site não carregada.");
+            if (!img1) throw new Error("Logo do Time 1 não carregada.");
+            if (!img2) throw new Error("Logo do Time 2 não carregada.");
+            if (!iconeMapa) throw new Error("Ícone de mapa não carregado.");
+            if (!iconeCalendario) throw new Error("Ícone de calendário não carregado.");
+            if (!iconeCampeonato) throw new Error("Ícone de campeonato não carregado.");
+            if (!iconeRelogio) throw new Error("Ícone de relógio não carregado.");
+
+            console.log("Todas as imagens foram carregadas.");
+
+            ctx.drawImage(fundo, 0, 0, 1080, 1350);
+            ctx.drawImage(logoSite, 50, 50, 200, 100);
+
+            // Obter a data atual e a data do jogo
+            const hoje = new Date();
+            const dataJogo = new Date(data); // data do jogo
+            
+
+           
+            // Formatando a data atual para comparações (ano, mês e dia)
+            const hojeFormatada = hoje.getFullYear() + '-' + 
+                      String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(hoje.getDate()).padStart(2, '0'); // "YYYY-MM-DD"
+            const dataJogoFormatada = dataJogo.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+            let diaJogo = "";
+
+          // Comparando a data do jogo com a data atual e amanhã
+            if (dataJogoFormatada === hojeFormatada) {
+                diaJogo = "HOJE";
+            } else {
+                // Verifica se o jogo é amanhã
+                const amanha = new Date();
+                amanha.setDate(hoje.getDate() + 1); // ajusta para o dia seguinte
+                const amanhaFormatada = amanha.toISOString().split('T')[0];
+                
+                
+
+                if (dataJogoFormatada === amanhaFormatada) {
+                    diaJogo = "AMANHÃ";
+                }
+                console.log("verificação:", dataJogoFormatada === amanhaFormatada);
+                console.log("Valor de amanhaformatada:", amanhaFormatada);
+            }
+
+            console.log("Hoje formatada:", hojeFormatada);
+            console.log("Data do jogo formatada:", dataJogoFormatada);
+            console.log("São iguais?", dataJogoFormatada === hojeFormatada);
+
+            // Desenhar o card "Hoje" ou "Amanhã", caso a data seja hoje ou amanhã
+            if (diaJogo) {
+                
+                ctx.fillStyle = diaJogo === "HOJE" ? "green" : "orange";
+                ctx.fillRect(800, 50, 200, 50);
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 30px Arial";
+                ctx.fillText(diaJogo, 840, 85);
+
+                
+
+            }
+
+            // Desenhar o ícone de campeonato e o nome do campeonato centralizado
+            ctx.drawImage(iconeCampeonato, canvas.width / 2 - 25, 100, 50, 50);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 50px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(campeonato, canvas.width / 2, 200);
+
+            // Desenhar as logos dos times maiores e os nomes abaixo
+            ctx.drawImage(img1, 200, 350, 250, 250);
+            ctx.drawImage(img2, 630, 350, 250, 250);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 40px Arial";
+            ctx.textAlign = "center";
+
+            ctx.fillText(time1, 325, 650);
+            ctx.fillText(time2, 755, 650);
+
+            // Desenhar o ícone de calendário e a data/hora
+
+
+            ctx.drawImage(iconeCalendario, 100, 700, 50, 50);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 40px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText(`${data}`, 170, 740);
+
+            // Desenhar o ícone de relógio e a hora
+            ctx.drawImage(iconeRelogio, 100, 780, 50, 50);
+            ctx.fillText(`${hora}h`, 170, 820);
+
+            // Card do local com cantos arredondados e texto centralizado
+            const cardX = 40;
+            const cardY = 850;
+            const cardWidth = canvas.width - 80;
+            const cardHeight = 100;
+            const borderRadius = 20;
+
+            ctx.fillStyle = "#010e2d";
+            ctx.roundRect(cardX, cardY, cardWidth, cardHeight, borderRadius);
+            ctx.fill();
+
+            const iconeMapaX = cardX + 20;
+            const iconeMapaY = 870;
+            ctx.drawImage(iconeMapa, iconeMapaX, iconeMapaY, 50, 60);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 35px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText(local, iconeMapaX + 60, 910);
+
+            const imgFinal = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = imgFinal;
+            link.download = `jogo_${time1}_vs_${time2}.png`;
+            link.click();
+
+        } catch (error) {
+            console.error("Erro ao gerar imagem:", error);
+            alert("Erro ao gerar imagem. Veja o console para mais detalhes.");
+            if (error.stack) {
+                console.error(error.stack);
+            }
+        }
+    }
+
+    document.querySelectorAll('.compartilhar-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const time1 = this.getAttribute('data-time1');
+            const logo1 = this.getAttribute('data-logo1');
+            const time2 = this.getAttribute('data-time2');
+            const logo2 = this.getAttribute('data-logo2');
+            const data = this.getAttribute('data-data');
+            const local = this.getAttribute('data-local');
+            const hora = this.getAttribute('data-hora');
+            const campeonato = this.getAttribute('data-campeonato');
+            gerarImagem(this, time1, logo1, time2, logo2, data, local, hora, campeonato);
+        });
+    });
+
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+                return this;
+            }
+        }
+</script>
+
+
 </body>
 </html>
