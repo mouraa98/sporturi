@@ -13,7 +13,7 @@
 <body>
     <header>
         <div class="logo">
-            <a href="/"><img src="/assets/logo.png"  alt="Logo do Campeonato" ></a>
+            <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
         </div>
         <nav>
             <a href="/user" class="admin-button"><i class="fas fa-arrow-left"></i> Voltar</a>
@@ -40,11 +40,16 @@
             <% } %>
 
             <!-- Formulário para agendar jogos -->
-            <form action="/user/agendar-jogo" method="POST">
+            <form action="/user/agendar-jogo" method="POST" enctype="multipart/form-data">
                 <div class="form-row-agenda-create">
                     <div class="form-group-agenda-create">
-                        <label for="logo1">Logo do Time 1 (URL):</label>
-                        <input type="text" id="logo1" name="logo1" required>
+                        <label for="logo1">Logo do Time 1:</label>
+                        <div>
+                            <input type="radio" name="logo1_type" value="url" checked onclick="toggleLogoInput('logo1')"> Usar URL
+                            <input type="radio" name="logo1_type" value="file" onclick="toggleLogoInput('logo1')"> Enviar Imagem
+                        </div>
+                        <input type="text" id="logo1_url" name="logo1_url" placeholder="URL da Logo do Time 1" required>
+                        <input type="file" id="logo1_file" name="logo1_file" style="display: none;">
                     </div>
                     <div class="form-group-agenda-create">
                         <label for="time1">Nome do Time 1:</label>
@@ -53,8 +58,13 @@
                 </div>
                 <div class="form-row-agenda-create">
                     <div class="form-group-agenda-create">
-                        <label for="logo2">Logo do Time 2 (URL):</label>
-                        <input type="text" id="logo2" name="logo2" required>
+                        <label for="logo2">Logo do Time 2:</label>
+                        <div>
+                            <input type="radio" name="logo2_type" value="url" checked onclick="toggleLogoInput('logo2')"> Usar URL
+                            <input type="radio" name="logo2_type" value="file" onclick="toggleLogoInput('logo2')"> Enviar Imagem
+                        </div>
+                        <input type="text" id="logo2_url" name="logo2_url" placeholder="URL da Logo do Time 2" required>
+                        <input type="file" id="logo2_file" name="logo2_file" style="display: none;">
                     </div>
                     <div class="form-group-agenda-create">
                         <label for="time2">Nome do Time 2:</label>
@@ -73,7 +83,6 @@
                             <option value="">Nenhum campeonato disponível</option>
                         <% } %>
                     </select>
-
                 </div>
                 <div class="form-row-agenda-create">
                     <div class="form-group-agenda-create">
@@ -149,6 +158,85 @@
         function closePopup() {
             document.querySelector('.popup').style.display = 'none';
         }
+
+        function toggleLogoInput(logoId) {
+            const urlInput = document.getElementById(`${logoId}_url`);
+            const fileInput = document.getElementById(`${logoId}_file`);
+            const urlRadio = document.querySelector(`input[name="${logoId}_type"][value="url"]`);
+            const fileRadio = document.querySelector(`input[name="${logoId}_type"][value="file"]`);
+
+            if (urlRadio.checked) {
+                urlInput.style.display = 'block';
+                urlInput.required = true;
+                fileInput.style.display = 'none';
+                fileInput.required = false;
+            } else {
+                urlInput.style.display = 'none';
+                urlInput.required = false;
+                fileInput.style.display = 'block';
+                fileInput.required = true;
+            }
+        }
+
+        // Inicializa os campos corretamente ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleLogoInput('logo1');
+            toggleLogoInput('logo2');
+        });
+    </script>
+    <script>
+    function toggleLogoInput(logoId) {
+        const urlInput = document.getElementById(`${logoId}_url`);
+        const fileInput = document.getElementById(`${logoId}_file`);
+        const urlRadio = document.querySelector(`input[name="${logoId}_type"][value="url"]`);
+        const fileRadio = document.querySelector(`input[name="${logoId}_type"][value="file"]`);
+    
+        if (urlRadio.checked) {
+            urlInput.style.display = 'block';
+            urlInput.required = true;
+            fileInput.style.display = 'none';
+            fileInput.required = false;
+        } else {
+            urlInput.style.display = 'none';
+            urlInput.required = false;
+            fileInput.style.display = 'block';
+            fileInput.required = true;
+        }
+    }
+    
+    // Função para preparar os dados antes de enviar o formulário
+    function prepareFormData(event) {
+        const form = event.target;
+    
+        // Verifica se o campo de URL ou arquivo deve ser enviado para cada logo
+        ['logo1', 'logo2'].forEach((logoId) => {
+            const urlRadio = document.querySelector(`input[name="${logoId}_type"][value="url"]`);
+            const urlInput = document.getElementById(`${logoId}_url`);
+            const fileInput = document.getElementById(`${logoId}_file`);
+    
+            if (urlRadio.checked) {
+                // Se a opção de URL estiver selecionada, remove o campo de arquivo
+                if (fileInput) {
+                    fileInput.disabled = true; // Desabilita o campo de arquivo para não ser enviado
+                }
+            } else {
+                // Se a opção de upload estiver selecionada, remove o campo de URL
+                if (urlInput) {
+                    urlInput.disabled = true; // Desabilita o campo de URL para não ser enviado
+                }
+            }
+        });
+    }
+    
+    // Adiciona o evento de submit ao formulário
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', prepareFormData);
+    
+        // Inicializa os campos corretamente ao carregar a página
+        toggleLogoInput('logo1');
+        toggleLogoInput('logo2');
+    });
     </script>
 </body>
 </html>

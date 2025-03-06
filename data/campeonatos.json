@@ -225,5 +225,13 @@
       }
     ],
     "grupos": null
+  },
+  {
+    "id": 2,
+    "nome": "Teste",
+    "responsavel": "admin",
+    "tipoTabela": "pontosCorridos",
+    "times": [],
+    "grupos": null
   }
 ]

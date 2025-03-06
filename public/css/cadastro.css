@@ -1,0 +1,159 @@
+/* Estilos gerais */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #1f2937;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container principal */
+.cadastro-container {
+    background-color: #1f2937;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 90%; /* Ajuste para responsividade */
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Título */
+.cadastro-container h1 {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+/* Ícone no título */
+.cadastro-container h1 i {
+    margin-right: 10px;
+    color: #1371ff;
+}
+
+/* Formulário */
+.cadastro-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Labels */
+.cadastro-container label {
+    font-size: 1rem;
+    color: #ffffff;
+    text-align: left;
+    margin-bottom: 0.5rem;
+}
+
+/* Inputs */
+.cadastro-container input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.cadastro-container input:focus {
+    border-color: #6c63ff;
+}
+
+/* Botão de cadastro */
+.cadastro-container button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #6c63ff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cadastro-container button:hover {
+    background-color: #574fdb;
+}
+
+/* Link para login */
+.cadastro-container p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.cadastro-container a {
+    color: #6c63ff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.cadastro-container a:hover {
+    text-decoration: underline;
+}
+
+/* Popup de erro */
+.error-popup {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Estilo para a logo */
+.logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo img {
+    max-width: 150px;
+    height: auto;
+}
+
+/* Media Queries para Responsividade */
+@media (max-width: 768px) {
+    .cadastro-container {
+        padding: 1.5rem; /* Reduz o padding em telas menores */
+    }
+
+    .cadastro-container h1 {
+        font-size: 1.8rem; /* Reduz o tamanho do título */
+    }
+}
+
+@media (max-width: 480px) {
+    .cadastro-container {
+        padding: 1rem; /* Reduz ainda mais o padding em telas muito pequenas */
+    }
+
+    .cadastro-container h1 {
+        font-size: 1.6rem; /* Reduz ainda mais o tamanho do título */
+    }
+
+    .cadastro-container label,
+    .cadastro-container input,
+    .cadastro-container button,
+    .cadastro-container p {
+        font-size: 0.9rem; /* Reduz o tamanho da fonte dos elementos */
+    }
+
+    .logo img {
+        max-width: 120px; /* Reduz o tamanho da logo em telas muito pequenas */
+    }
+}

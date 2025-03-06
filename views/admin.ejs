@@ -162,31 +162,51 @@
                         </div>
                     <% }) %>
                 </div>
-            <% } else if (page === 'usuarios') { %>
-                <h1><i class="fas fa-users"></i> Usuários</h1>
-                <div class="usuarios-list">
-                    <% users.forEach(user => { %>
-                        <div class="usuario-card">
-                            <h2><%= user.username %></h2>
-                            <form action="/admin/users/delete/<%= user.id %>" method="POST">
-                                <button type="submit" class="admin-button delete-button"><i class="fas fa-trash"></i> Excluir</button>
-                            </form>
+                <% } else if (page === 'usuarios') { %>
+                    <h1><i class="fas fa-users"></i> Usuários</h1>
+                    <div class="usuarios-list">
+                        <% users.forEach(function(user) { %>
+                            <div class="usuario-card">
+                                <h2><%= user.username %></h2>
+                                
+                                <!-- Botão de Editar -->
+                                <a href="/admin/users/edit/<%= user.id %>" class="admin-button edit-button">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                
+                                <!-- Botão de Excluir -->
+                                <form action="/admin/users/delete/<%= user.id %>" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?')">
+                                    <button type="submit" class="admin-button delete-button">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                    
+                                </form>
+                            </div>
+                        <% }); %>
+                    </div>
+                
+                    <!-- Formulário para Criar Usuário -->
+                    <form action="/admin/users/create" method="POST">
+                        <div class="form-group">
+                            <label for="username">Nome de Usuário:</label>
+                            <input type="text" id="username" name="username" required>
                         </div>
-                    <% }) %>
-                </div>
-                <form action="/admin/users/create" method="POST">
-                    <div class="form-group">
-                        <label for="username">Nome de Usuário:</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Senha:</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Usuário</button>
-                </form>
-            <% } %>
+                        <div class="form-group">
+                            <label for="password">Senha:</label>
+                            <input type="password" id="password" name="password" required>
+                        </div><!-- Botão para Gerar Link de Convite -->
+                        <button onclick="gerarLinkConvite('admin')" class="admin-button link-button">
+                            <i class="fas fa-link"></i> Gerar Link Cadastro
+                        </button>
+                        <button type="submit" class="admin-button"><i class="fas fa-plus"></i> Criar Usuário</button>
+                        
+                    </form>
+                    
+                <% } %>
+                
+                
         </div>
+        
     </div>
 
     <footer>
@@ -222,9 +242,57 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        updateUserList(); // Atualiza a lista de usuários ao carregar a página
+        updateUserList(); // Remove esta linha
     });
 </script>
 
+<script>
+    async function gerarLinkConvite(username) {
+    try {
+        console.log('Iniciando geração de link de convite para:', username);
+
+        // Chama a rota do backend para gerar o link
+        const response = await fetch(`/gerar-link-convite?username=${username}`);
+
+        // Verifica se a resposta foi bem-sucedida
+        if (!response.ok) {
+            const errorMessage = await response.text(); // Tenta ler a mensagem de erro
+            throw new Error(`Erro na requisição: ${response.status} - ${errorMessage}`);
+        }
+
+        // Verifica se a resposta é JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json(); // Analisa a resposta como JSON
+            if (data.link) {
+                // Verifica se o navegador suporta a API Clipboard
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    // Copia o link para a área de transferência
+                    await navigator.clipboard.writeText(data.link);
+                    alert('Link copiado: ' + data.link);
+                } else {
+                    // Fallback para navegadores que não suportam a API Clipboard
+                    const tempInput = document.createElement('input');
+                    tempInput.value = data.link;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    alert('Link copiado: ' + data.link);
+                }
+            } else {
+                throw new Error('Link não encontrado na resposta.');
+            }
+        } else {
+            // Se a resposta não for JSON, trata como texto
+            const errorMessage = await response.text();
+            throw new Error(`Resposta inesperada: ${errorMessage}`);
+        }
+    } catch (err) {
+        console.error('Erro ao gerar link de convite:', err);
+        alert('Erro ao gerar link de convite: ' + err.message);
+    }
+}
+</script>
 </body>
 </html>

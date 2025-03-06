@@ -4,6 +4,7 @@ const path = require('path');
 const session = require('express-session');
 const fs = require('fs');
 const crypto = require('crypto');
+const multer = require('multer');
 const cron = require('node-cron');
 const swaggerUi = require('swagger-ui-express');
 const flash = require('connect-flash');
@@ -11,6 +12,41 @@ const swaggerDocument = require('./swagger.json'); // Importa o arquivo de espec
 const os = require('os');
 const app = express();
 const port = 8000;
+
+
+// Configuração do Multer para upload de arquivos
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'public', 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir); // Salva os arquivos na pasta public/uploads
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
+
+
+
+
+// Rota para buscar a imagem
+app.get('/proxy-image', async (req, res) => {
+    const imageUrl = req.query.url; // URL da imagem externa
+
+    try {
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        res.set('Content-Type', response.headers['content-type']);
+        res.send(response.data);
+    } catch (err) {
+        console.error('Erro ao buscar a imagem:', err);
+        res.status(500).send('Erro ao buscar a imagem');
+    }
+});
 
 app.use(express.json()); // Necessário para interpretar JSON no body
 
@@ -58,7 +94,79 @@ const campeonatosFilePath = path.join(__dirname, 'data', 'campeonatos.json');
 const tokensFilePath = path.join(__dirname, 'data', 'tokens.json');
 const agendamentosFilePath = path.join(__dirname, 'data', 'agendamentos.json');
 const accessDataFilePath = path.join(__dirname, 'data', 'accessData.json'); // Adicionado
+const linksTokensFilePath = path.join(__dirname, 'data', 'linkstokens.json');
 
+// Função para escrever em um arquivo JSON
+function writeJSONFile(filePath, data) {
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2)); // Salva os dados formatados
+    } catch (err) {
+        console.error('Erro ao salvar o arquivo JSON:', err);
+        throw err;
+    }
+}
+
+// Função para ler o arquivo linkstokens.json
+function readLinksTokensFile() {
+    try {
+        const data = fs.readFileSync(linksTokensFilePath, 'utf-8');
+        const tokens = JSON.parse(data);
+        return removeExpiredTokens(tokens); // Remove tokens expirados ao ler o arquivo
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return [];
+        }
+        throw err;
+    }
+}
+
+// Função para remover tokens expirados
+function removeExpiredTokens(tokens) {
+    const now = new Date(); // Obtém a data e hora atual
+    const validTokens = tokens.filter(token => new Date(token.expires) > now); // Filtra tokens válidos
+    writeLinksTokensFile(validTokens); // Salva a lista atualizada
+    return validTokens; // Retorna a lista de tokens válidos (opcional)
+}
+
+// Função para ler o arquivo linkstokens.json
+function readLinksTokensFile() {
+    try {
+        const data = fs.readFileSync(linksTokensFilePath, 'utf-8');
+        const tokens = JSON.parse(data);
+
+        if (tokens.length === 0) {
+            console.log('Nenhum token encontrado no arquivo linkstokens.json.');
+            return [];
+        }
+
+        return removeExpiredTokens(tokens); // Remove tokens expirados ao ler o arquivo
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            console.log('Arquivo linkstokens.json não encontrado. Criando um novo...');
+            return [];
+        }
+        throw err;
+    }
+}
+
+// Função para adicionar um token
+function addToken(username) {
+    try {
+        const tokens = readLinksTokensFile();
+        const token = generateToken(); // Gera um token único
+        const newToken = {
+            token,
+            username,
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Expira em 7 dias
+        };
+        tokens.push(newToken);
+        writeLinksTokensFile(tokens);
+        return token;
+    } catch (err) {
+        console.error('Erro ao adicionar token:', err);
+        throw err;
+    }
+}
 
 // Função para ler dados de um arquivo JSON
 function readJSONFile(filePath) {
@@ -81,8 +189,13 @@ function readJSONFile(filePath) {
 
 
 // Função para escrever dados em um arquivo JSON
-function writeJSONFile(filePath, data) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+function writeLinksTokensFile(data) {
+    try {
+        fs.writeFileSync(linksTokensFilePath, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error('Erro ao escrever no arquivo linkstokens.json:', err);
+        throw err;
+    }
 }
 
 // Função para ler os dados de acesso
@@ -149,7 +262,7 @@ cron.schedule('0 0 * * *', () => {
     console.log('Contagem de acessos reiniciada.');
 });
 
-// Middleware para verificar autenticação
+
 // Middleware para verificar autenticação
 const isAuthenticated = (req, res, next) => {
     const username = req.session.username;
@@ -200,13 +313,17 @@ function removerAgendamento(agendaId) {
     console.log(`Agendamento ${agendaId} removido com sucesso.`);
 }
 
-// Função para excluir agendas passadas
 function excluirAgendasPassadas() {
     const hoje = new Date();
     const agendamentos = readJSONFile(agendamentosFilePath);
-    const agendamentosAtualizados = agendamentos.filter(agendamento => {
+    const agendamentosAtualizados = agendamentos.filter((agendamento, index) => {
         const dataAgendamento = new Date(`${agendamento.data}T${agendamento.hora}`);
-        return dataAgendamento >= hoje;
+        if (dataAgendamento >= hoje) {
+            return true; // Mantém agendamentos futuros
+        } else {
+            removerAgendamento(index); // Remove agendamentos passados
+            return false;
+        }
     });
     writeJSONFile(agendamentosFilePath, agendamentosAtualizados);
 }
@@ -216,7 +333,6 @@ cron.schedule('0 0 * * *', () => {
     excluirAgendasPassadas();
     console.log('Agendas passadas foram excluídas.');
 });
-
 // Rota para a documentação Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -853,55 +969,61 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
 });
 
 
-// Rota para adicionar um jogo à agenda do usuário
-app.post('/user/agendar-jogo', isAuthenticated, (req, res) => {
-    const { logo1, time1, logo2, time2, camp, data, hora, local } = req.body;
+
+// Rota para agendar jogos
+app.post('/user/agendar-jogo', isAuthenticated, upload.fields([{ name: 'logo1_file', maxCount: 1 }, { name: 'logo2_file', maxCount: 1 }]), (req, res) => {
+    const { logo1_url, logo2_url, time1, time2, camp, data, hora, local } = req.body;
     const username = req.session.username;
 
-    if (!logo1 || !time1 || !logo2 || !time2 || !camp || !data || !hora || !local) {
+    // Verifica se os campos obrigatórios estão preenchidos
+    if (!time1 || !time2 || !camp || !data || !hora || !local) {
         req.session.error = 'Preencha todos os campos corretamente.';
-    } else {
-        const agendamentos = readJSONFile(agendamentosFilePath);
-        const novoJogo = { 
-            id: agendamentos.length, // O ID é o índice atual do array, iniciando de 0
-            logo1, 
-            time1, 
-            logo2, 
-            time2,
-            camp, 
-            data, 
-            hora, 
-            local, 
-            responsavel: username // Define o responsável como o usuário logado
-        };
-
-        // Adiciona o novo jogo ao arquivo de agendamentos
-        agendamentos.push(novoJogo);
-        writeJSONFile(agendamentosFilePath, agendamentos);
-
-        // Adiciona o ID da agenda ao usuário responsável
-        const users = readJSONFile(usersFilePath);
-        const userIndex = users.findIndex(u => u.username === username);
-        if (userIndex !== -1) {
-            if (!users[userIndex].agendas) {
-                users[userIndex].agendas = []; // Inicializa o campo agendas se não existir
-            }
-            users[userIndex].agendas.push(novoJogo.id); // Adiciona o ID da agenda
-            writeJSONFile(usersFilePath, users);
-        }
-
-        // Agendar a remoção do jogo no horário especificado
-        const dataHoraJogo = new Date(`${data}T${hora}`);
-        const cronExpression = `${dataHoraJogo.getMinutes()} ${dataHoraJogo.getHours()} ${dataHoraJogo.getDate()} ${dataHoraJogo.getMonth() + 1} *`;
-
-        cron.schedule(cronExpression, () => {
-            removerAgendamento(novoJogo.id); // Remove o agendamento com o ID
-            console.log(`Jogo removido: ${time1} vs ${time2} em ${data} ${hora}`);
-        });
-
-        req.session.success = 'Jogo agendado com sucesso!';
+        return res.redirect('/user/agenda');
     }
 
+    // Define as URLs das logos
+    const logo1 = req.files['logo1_file'] ? `/uploads/${req.files['logo1_file'][0].filename}` : logo1_url;
+    const logo2 = req.files['logo2_file'] ? `/uploads/${req.files['logo2_file'][0].filename}` : logo2_url;
+
+    // Verifica se as logos foram fornecidas
+    if (!logo1 || !logo2) {
+        req.session.error = 'Forneça uma URL ou envie uma imagem para as logos dos times.';
+        return res.redirect('/user/agenda');
+    }
+
+    // Lê os agendamentos existentes
+    const agendamentos = readJSONFile(agendamentosFilePath);
+
+    // Cria o novo jogo
+    const novoJogo = {
+        id: agendamentos.length, // O ID é o índice atual do array, iniciando de 0
+        logo1,
+        time1,
+        logo2,
+        time2,
+        camp,
+        data,
+        hora,
+        local,
+        responsavel: username // Define o responsável como o usuário logado
+    };
+
+    // Adiciona o novo jogo ao arquivo de agendamentos
+    agendamentos.push(novoJogo);
+    writeJSONFile(agendamentosFilePath, agendamentos);
+
+    // Adiciona o ID da agenda ao usuário responsável
+    const users = readJSONFile(usersFilePath);
+    const userIndex = users.findIndex(u => u.username === username);
+    if (userIndex !== -1) {
+        if (!users[userIndex].agendas) {
+            users[userIndex].agendas = []; // Inicializa o campo agendas se não existir
+        }
+        users[userIndex].agendas.push(novoJogo.id); // Adiciona o ID da agenda
+        writeJSONFile(usersFilePath, users);
+    }
+
+    req.session.success = 'Jogo agendado com sucesso!';
     res.redirect('/user/agenda');
 });
 
@@ -1379,6 +1501,72 @@ app.post('/admin/users/create', isAuthenticated, isSuperuser, (req, res) => {
     // Redireciona para a lista de usuários
     res.redirect('/admin/usuarios');
 });
+// Rota para exibir a página de cadastro
+app.get('/cadastro', (req, res) => {
+    const token = req.query.token; // Obtém o token da URL
+    console.log('Token recebido:', token); // Log para depuração
+
+    if (!token) {
+        return res.status(400).send('Token não fornecido');
+    }
+
+    // Valida o token
+    const tokens = readLinksTokensFile();
+    const validToken = tokens.find(t => t.token === token && new Date(t.expires) > new Date());
+
+    if (validToken) {
+        // Token válido, renderiza a página de cadastro com o token
+        console.log('Token válido:', validToken); // Log para depuração
+        res.render('cadastro', { token });
+    } else {
+        // Token inválido ou expirado
+        console.log('Token inválido ou expirado'); // Log para depuração
+        res.status(400).send('Token inválido ou expirado');
+    }
+});
+// Rota para processar o cadastro
+
+app.post('/cadastro', (req, res) => {
+    console.log('Dados recebidos:', req.body); // Log para depuração
+
+    const { username, password, token } = req.body;
+
+    if (!username || !password || !token) {
+        console.log('Dados ausentes:', { username, password, token }); // Log para depuração
+        return res.status(400).json({ error: 'Dados ausentes' });
+    }
+
+    // Valida o token
+    const tokens = readLinksTokensFile();
+    const validToken = tokens.find(t => t.token === token && new Date(t.expires) > new Date());
+
+    if (!validToken) {
+        console.log('Token inválido ou expirado:', token); // Log para depuração
+        return res.status(400).json({ error: 'Token inválido ou expirado' });
+    }
+
+    // Verifica se o nome de usuário já existe
+    const users = readJSONFile(usersFilePath);
+    const userExists = users.some(u => u.username === username);
+    if (userExists) {
+        console.log('Nome de usuário já existe:', username); // Log para depuração
+        return res.status(400).json({ error: 'Nome de usuário já existe' });
+    }
+
+    // Cria o novo usuário
+    const newUserId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
+    users.push({ id: newUserId, username, password });
+
+    // Salva as alterações
+    writeJSONFile(usersFilePath, users);
+
+    // Remove o token usado
+    const updatedTokens = tokens.filter(t => t.token !== token);
+    writeLinksTokensFile(updatedTokens);
+
+    // Redireciona para a página de login
+    res.redirect('/login');
+});
 
 // Rota para deletar um usuário
 app.post('/admin/users/delete/:id', isAuthenticated, isSuperuser, (req, res) => {
@@ -1401,7 +1589,7 @@ app.post('/admin/users/delete/:id', isAuthenticated, isSuperuser, (req, res) => 
     writeJSONFile(usersFilePath, users);
 
     // Retorna uma resposta JSON
-    res.json({ success: true });
+    res.redirect('/admin/usuarios');
 });
 
 app.get('/admin/usuarios/data', isAuthenticated, isSuperuser, (req, res) => {
@@ -1444,6 +1632,17 @@ function getLocalIP() {
         }
     }
 }
+app.get('/gerar-link-convite', (req, res) => {
+    try {
+        const username = req.query.username; // Nome de usuário associado ao token (opcional)
+        const token = addToken(username); // Gera e armazena o token
+        const link = `http://${localIP}:${port}/cadastro?token=${token}`; // Link com o token
+        res.json({ link }); // Resposta em JSON
+    } catch (err) {
+        console.error('Erro ao gerar link de convite:', err);
+        res.status(500).json({ error: 'Erro ao gerar link de convite' }); // Erro em JSON
+    }
+});
 
 const localIP = getLocalIP();
 if (localIP) {
