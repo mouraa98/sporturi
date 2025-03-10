@@ -110,7 +110,7 @@
             
             <% } else if (page === 'adicionar-campeonato') { %>
                 <h1><i class="fas fa-plus"></i> Adicionar Campeonato</h1>
-                <form action="/admin/campeonatos/add" method="POST">
+                <form action="/admin/campeonatos/add" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="nome">Nome do Campeonato:</label>
                         <input type="text" id="nome" name="nome" required>
@@ -129,6 +129,10 @@
                             <option value="pontosCorridos">Pontos Corridos</option>
                             <option value="grupos">Grupos</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="logoCamp">Logo do Campeonato:</label>
+                        <input type="file" name="logoCamp" id="logoCamp">
                     </div>
                     <button type="submit"><i class="fas fa-save"></i> Salvar</button>
                 </form>
@@ -153,7 +157,10 @@
                 <div class="campeonatos-list">
                     <% campeonatos.forEach((campeonato, index) => { %>
                         <div class="campeonato-card">
-                            <h2><%= campeonato.nome %></h2>
+                            <h2><div class="campeonato-item">
+                                <% if (campeonato.logoCamp) { %>
+                                    <img src="/uploads/<%= campeonato.logoCamp.split('/').pop() %>" alt= "">
+                                <% } %> <%= campeonato.nome %></h2>
                             <p>Responsável: <%= campeonato.responsavel %></p>
                             <p>Tipo de Tabela: <%= campeonato.tipoTabela %></p>
                             <form action="/admin/campeonatos/delete/<%= index %>" method="POST">
@@ -292,6 +299,87 @@
         console.error('Erro ao gerar link de convite:', err);
         alert('Erro ao gerar link de convite: ' + err.message);
     }
+}
+</script>
+<script>
+    // Função para copiar o token
+    function copyToken(token) {
+        // Cria um elemento temporário para copiar o token
+        const tempInput = document.createElement('input');
+        tempInput.value = token;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+
+        // Feedback visual (opcional)
+        alert('Token copiado: ' + token);
+    }
+</script>
+
+<script>document.addEventListener('DOMContentLoaded', () => {
+const menuToggle = document.querySelector('.menu-toggle');
+const menu = document.querySelector('.menu');
+
+menuToggle.addEventListener('click', () => {
+    menu.classList.toggle('active');
+    menuToggle.classList.toggle('active');
+});
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    updateUserList(); // Remove esta linha
+});
+</script>
+
+<script>
+async function gerarLinkConvite(username) {
+try {
+    console.log('Iniciando geração de link de convite para:', username);
+
+    // Chama a rota do backend para gerar o link
+    const response = await fetch(`/gerar-link-convite?username=${username}`);
+
+    // Verifica se a resposta foi bem-sucedida
+    if (!response.ok) {
+        const errorMessage = await response.text(); // Tenta ler a mensagem de erro
+        throw new Error(`Erro na requisição: ${response.status} - ${errorMessage}`);
+    }
+
+    // Verifica se a resposta é JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+        const data = await response.json(); // Analisa a resposta como JSON
+        if (data.link) {
+            // Verifica se o navegador suporta a API Clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // Copia o link para a área de transferência
+                await navigator.clipboard.writeText(data.link);
+                alert('Link copiado: ' + data.link);
+            } else {
+                // Fallback para navegadores que não suportam a API Clipboard
+                const tempInput = document.createElement('input');
+                tempInput.value = data.link;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                alert('Link copiado: ' + data.link);
+            }
+        } else {
+            throw new Error('Link não encontrado na resposta.');
+        }
+    } else {
+        // Se a resposta não for JSON, trata como texto
+        const errorMessage = await response.text();
+        throw new Error(`Resposta inesperada: ${errorMessage}`);
+    }
+} catch (err) {
+    console.error('Erro ao gerar link de convite:', err);
+    alert('Erro ao gerar link de convite: ' + err.message);
+}
 }
 </script>
 </body>

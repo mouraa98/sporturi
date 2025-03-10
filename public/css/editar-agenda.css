@@ -74,3 +74,29 @@ button:hover {
 .delete-button:hover {
     background-color: #dc2626; /* Vermelho mais escuro */
 }
+/* Estilo para o label */
+.placar-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* Estilo para o checkbox */
+.placar-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #4CAF50; /* Altera a cor do checkbox */
+}
+
+/* Estilo para o checkbox quando está marcado */
+.placar-checkbox:checked {
+    accent-color: #2196F3; /* Altera a cor do checkbox quando marcado */
+}
+
+/* Estilo para o label quando o checkbox está marcado */
+.placar-checkbox:checked + .placar-label {
+    color: #2196F3;
+}

@@ -400,3 +400,20 @@ button:hover {
 .admin-button.link-button:hover {
     background-color: #574fdb;
 }
+.campeonato-item img {
+    width: 30px; /* Tamanho padrão da logo */
+    height: 30px; /* Tamanho padrão da logo */
+    vertical-align: middle;
+    margin-right: 10px;
+    max-width: 100%; /* Garante que a logo não ultrapasse o tamanho do contêiner */
+    height: auto; /* Mantém a proporção da logo */
+}
+
+/* Media query para telas menores */
+@media (max-width: 768px) {
+    .campeonato-item img {
+        width: 25px; /* Tamanho menor da logo em telas pequenas */
+        height: 25px; /* Tamanho menor da logo em telas pequenas */
+        margin-right: 5px; /* Espaçamento menor em telas pequenas */
+    }
+}

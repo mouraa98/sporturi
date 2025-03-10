@@ -15,6 +15,7 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/favicon.png">
+    
 </head>
 <body>
     <header>
@@ -23,23 +24,19 @@
         </div>
         <nav>
              <!-- Botão para ver a agenda de jogos -->
-             <a href="/agenda" class="admin-button" style="margin-bottom: 20px;">
-                <i class="fas fa-calendar-alt"></i> Ver Jogos
-            </a>
+                <!-- <a href="/agenda" class="admin-button" style="margin-bottom: 20px;">
+                <i class="fas fa-calendar-alt"></i> Tabelas</a>-->
             <a href="/login" class="admin-button"><i class="fa-solid fa-user-lock"></i> Login</a>
         </nav>
     </header>
-
     <div class="main-content">
         <div class="container">
             <h2><i class="fa-solid fa-trophy"></i> Campeonatos</h2>
-    
             <!-- Barra de pesquisa -->
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Pesquisar campeonato..." />
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
-    
             <% if (campeonatos.length === 0) { %>
                 <div class="empty-message">
                     <p style='font-size:12px'><i class="fa-solid fa-circle-exclamation"></i> Nenhum campeonato encontrado.</p>
@@ -49,7 +46,10 @@
                     <% campeonatos.forEach((campeonato) => { %>
                         <li class="campeonato-item">
                             <a href="/campeonato/<%= campeonato.nome %>">
-                                <i class="fa-solid fa-futbol"></i> <%= campeonato.nome %>
+                                <% if (campeonato.logoCamp) { %>
+                                    <img src="/uploads/<%= campeonato.logoCamp.split('/').pop() %>" alt=<i class="fa-solid fa-futbol"></i>
+                                <% } %>
+                                <%= campeonato.nome %>
                             </a>
                         </li>
                     <% }) %>
@@ -88,18 +88,6 @@
     </script>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registrado com sucesso:', registration);
-                    })
-                    .catch((error) => {
-                        console.log('Falha ao registrar o Service Worker:', error);
-                    });
-            });
-        }
-
         let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
@@ -129,5 +117,29 @@ window.addEventListener('beforeinstallprompt', (event) => {
     });
 });
     </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const campeonatoList = document.getElementById('campeonatoList');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const campeonatoItems = campeonatoList.getElementsByTagName('li');
+
+            Array.from(campeonatoItems).forEach(function(item) {
+                const campeonatoName = item.textContent.toLowerCase();
+                if (campeonatoName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+
+
+
 </body>
 </html>

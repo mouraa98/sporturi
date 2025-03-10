@@ -87,17 +87,14 @@
                                         </div>
                                         <% if (jogo.status === 'agendado') { %>
                                             <button class="compartilhar-btn" 
-                                                    data-time1="<%= jogo.time1 %>" 
-                                                    data-logo1="<%= jogo.logo1 %>" 
-                                                    data-time2="<%= jogo.time2 %>" 
-                                                    data-logo2="<%= jogo.logo2 %>" 
-                                                    data-data="<%= jogo.data %>" 
-                                                    data-local="<%= jogo.local %>" 
-                                                    data-hora="<%= jogo.hora %>"
-                                                    data-campeonato="<%= jogo.camp %>"
-                                                    data-logo-camp="/uploads/<%= jogo.logoCamp.split('/').pop() %>">
-                                                    <i class="fa-solid fa-share-nodes"></i> Compartilhar
-                                            </button>
+                                                data-time1="<%= jogo.time1 %>" 
+                                                data-logo1="<%= jogo.logo1 %>" 
+                                                data-time2="<%= jogo.time2 %>" 
+                                                data-logo2="<%= jogo.logo2 %>" 
+                                                data-data="<%= jogo.data %>" 
+                                                data-local="<%= jogo.local %>" 
+                                                data-hora="<%= jogo.hora %>"
+                                                data-campeonato="<%= jogo.camp %>"> <i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
                                         <% } %>
                                     </div>
                                 </div>
@@ -280,224 +277,224 @@ document.addEventListener("DOMContentLoaded", () => {
     
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-    function carregarImagem(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => {
-                console.log("Imagem carregada com sucesso:", src);
-                resolve(img);
-            };
-            img.onerror = (err) => {
-                console.error("Erro ao carregar imagem:", src, err);
-                reject(err);
-            };
+    <script>
+        function carregarImagem(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                    console.log("Imagem carregada com sucesso:", src);
+                    resolve(img);
+                };
+                img.onerror = (err) => {
+                    console.error("Erro ao carregar imagem:", src, err);
+                    reject(err);
+                };
 
-            if (src.endsWith('.svg')) {
-                fetch(src)
-                    .then(response => response.text())
-                    .then(svgData => {
-                        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-                    })
-                    .catch(error => reject(error));
-            } else {
-                img.src = src;
-            }
-        });
-    }
-
-    async function gerarImagem(botao, time1, logo1, time2, logo2, data, local, hora, campeonato, logoCamp) {
-        const loadingPopup = document.getElementById("loadingPopup");
-
-        try {
-            // Exibe o popup de carregamento
-            loadingPopup.style.display = "flex";
-
-            console.log("Iniciando geração de imagem...");
-            const canvas = document.createElement("canvas");
-            canvas.width = 1080;
-            canvas.height = 1350;
-            const ctx = canvas.getContext("2d");
-
-            const fundo = await carregarImagem("/assets/flyer.png");
-            const logoSite = await carregarImagem("/assets/logo.png");
-            const img1 = await carregarImagem(logo1);
-            const img2 = await carregarImagem(logo2);
-            const iconeMapa = await carregarImagem("/assets/icons/localizacao.svg");
-            const iconeCalendario = await carregarImagem("/assets/icons/calendario.svg");
-            const iconeCampeonato = await carregarImagem("/assets/icons/trophy.svg");
-            const iconeRelogio = await carregarImagem("/assets/icons/relogio.svg");
-            const logoCampeonato = await carregarImagem(logoCamp); // Carrega a logo do campeonato
-
-            if (!fundo) throw new Error("Imagem de fundo não carregada.");
-            if (!logoSite) throw new Error("Logo do site não carregada.");
-            if (!img1) throw new Error("Logo do Time 1 não carregada.");
-            if (!img2) throw new Error("Logo do Time 2 não carregada.");
-            if (!iconeMapa) throw new Error("Ícone de mapa não carregado.");
-            if (!iconeCalendario) throw new Error("Ícone de calendário não carregado.");
-            if (!iconeCampeonato) throw new Error("Ícone de campeonato não carregado.");
-            if (!iconeRelogio) throw new Error("Ícone de relógio não carregado.");
-            if (!logoCampeonato) throw new Error("Logo do campeonato não carregada.");
-
-            console.log("Todas as imagens foram carregadas.");
-
-            ctx.drawImage(fundo, 0, 0, 1080, 1350);
-            ctx.drawImage(logoSite, 50, 50, 200, 100);
-
-            // Obter a data atual e a data do jogo
-            const hoje = new Date();
-            const dataJogo = new Date(data); // data do jogo
-
-            // Formatando a data atual para comparações (ano, mês e dia)
-            const hojeFormatada = hoje.getFullYear() + '-' + 
-                        String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(hoje.getDate()).padStart(2, '0'); // "YYYY-MM-DD"
-            const dataJogoFormatada = dataJogo.toISOString().split('T')[0]; // "YYYY-MM-DD"
-
-            let diaJogo = "";
-
-            // Comparando a data do jogo com a data atual e amanhã
-            if (dataJogoFormatada === hojeFormatada) {
-                diaJogo = "HOJE";
-            } else {
-                // Verifica se o jogo é amanhã
-                const amanha = new Date();
-                amanha.setDate(hoje.getDate() + 1); // ajusta para o dia seguinte
-                const amanhaFormatada = amanha.toISOString().split('T')[0];
-
-                if (dataJogoFormatada === amanhaFormatada) {
-                    diaJogo = "AMANHÃ";
+                if (src.endsWith('.svg')) {
+                    fetch(src)
+                        .then(response => response.text())
+                        .then(svgData => {
+                            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                        })
+                        .catch(error => reject(error));
+                } else {
+                    img.src = src;
                 }
-            }
+            });
+        }
 
-            // Desenhar o card "Hoje" ou "Amanhã", caso a data seja hoje ou amanhã
-            if (diaJogo) {
-                ctx.fillStyle = diaJogo === "HOJE" ? "green" : "orange";
-                ctx.fillRect(800, 50, 200, 50);
+        async function gerarImagem(botao, time1, logo1, time2, logo2, data, local, hora, campeonato) {
+            const loadingPopup = document.getElementById("loadingPopup");
+
+            try {
+                // Exibe o popup de carregamento
+                loadingPopup.style.display = "flex";
+
+                console.log("Iniciando geração de imagem...");
+                const canvas = document.createElement("canvas");
+                canvas.width = 1080;
+                canvas.height = 1350;
+                const ctx = canvas.getContext("2d");
+
+                const fundo = await carregarImagem("/assets/flyer.png");
+                const logoSite = await carregarImagem("/assets/logo.png");
+                const img1 = await carregarImagem(logo1);
+                const img2 = await carregarImagem(logo2);
+                const iconeMapa = await carregarImagem("/assets/icons/localizacao.svg");
+                const iconeCalendario = await carregarImagem("/assets/icons/calendario.svg");
+                const iconeCampeonato = await carregarImagem("/assets/icons/trophy.svg");
+                const iconeRelogio = await carregarImagem("/assets/icons/relogio.svg");
+
+                if (!fundo) throw new Error("Imagem de fundo não carregada.");
+                if (!logoSite) throw new Error("Logo do site não carregada.");
+                if (!img1) throw new Error("Logo do Time 1 não carregada.");
+                if (!img2) throw new Error("Logo do Time 2 não carregada.");
+                if (!iconeMapa) throw new Error("Ícone de mapa não carregado.");
+                if (!iconeCalendario) throw new Error("Ícone de calendário não carregado.");
+                if (!iconeCampeonato) throw new Error("Ícone de campeonato não carregado.");
+                if (!iconeRelogio) throw new Error("Ícone de relógio não carregado.");
+
+                console.log("Todas as imagens foram carregadas.");
+
+                ctx.drawImage(fundo, 0, 0, 1080, 1350);
+                ctx.drawImage(logoSite, 50, 50, 200, 100);
+
+                // Obter a data atual e a data do jogo
+                const hoje = new Date();
+                const dataJogo = new Date(data); // data do jogo
+
+                // Formatando a data atual para comparações (ano, mês e dia)
+                const hojeFormatada = hoje.getFullYear() + '-' + 
+                            String(hoje.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(hoje.getDate()).padStart(2, '0'); // "YYYY-MM-DD"
+                const dataJogoFormatada = dataJogo.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+                let diaJogo = "";
+
+                // Comparando a data do jogo com a data atual e amanhã
+                if (dataJogoFormatada === hojeFormatada) {
+                    diaJogo = "HOJE";
+                } else {
+                    // Verifica se o jogo é amanhã
+                    const amanha = new Date();
+                    amanha.setDate(hoje.getDate() + 1); // ajusta para o dia seguinte
+                    const amanhaFormatada = amanha.toISOString().split('T')[0];
+
+                    if (dataJogoFormatada === amanhaFormatada) {
+                        diaJogo = "AMANHÃ";
+                    }
+                }
+
+                // Desenhar o card "Hoje" ou "Amanhã", caso a data seja hoje ou amanhã
+                if (diaJogo) {
+                    ctx.fillStyle = diaJogo === "HOJE" ? "green" : "orange";
+                    ctx.fillRect(800, 50, 200, 50);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 30px Arial";
+                    ctx.fillText(diaJogo, 840, 85);
+                }
+
+                // Desenhar o ícone de campeonato e o nome do campeonato centralizado
+                ctx.drawImage(iconeCampeonato, canvas.width / 2 - 25, 100, 50, 50);
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 30px Arial";
-                ctx.fillText(diaJogo, 840, 85);
+                ctx.font = "bold 50px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(campeonato, canvas.width / 2, 200);
+
+                // Desenhar as logos dos times maiores e os nomes abaixo
+                ctx.drawImage(img1, 200, 350, 250, 250);
+                ctx.drawImage(img2, 630, 350, 250, 250);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 40px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(time1, 325, 650);
+                ctx.fillText(time2, 755, 650);
+
+                // Desenhar o ícone de calendário e a data/hora
+                ctx.drawImage(iconeCalendario, 100, 700, 50, 50);
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 40px Arial";
+                ctx.textAlign = "left";
+                ctx.fillText(`${data}`, 170, 740);
+
+                // Desenhar o ícone de relógio e a hora
+                ctx.drawImage(iconeRelogio, 100, 780, 50, 50);
+                ctx.fillText(`${hora}h`, 170, 820);
+
+                // Card do local com cantos arredondados e texto centralizado
+                const cardX = 40;
+                const cardY = 850;
+                const cardWidth = canvas.width - 80;
+                const cardHeight = 100;
+                const borderRadius = 20;
+
+                ctx.fillStyle = "#010e2d";
+                ctx.roundRect(cardX, cardY, cardWidth, cardHeight, borderRadius);
+                ctx.fill();
+
+                const iconeMapaX = cardX + 20;
+                const iconeMapaY = 870;
+                ctx.drawImage(iconeMapa, iconeMapaX, iconeMapaY, 50, 60);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 35px Arial";
+                ctx.textAlign = "left";
+                ctx.fillText(local, iconeMapaX + 60, 910);
+
+                const imgFinal = canvas.toDataURL("image/png");
+                const link = document.createElement("a");
+                link.href = imgFinal;
+                link.download = `jogo_${time1}_vs_${time2}.png`;
+                link.click();
+
+            } catch (error) {
+                console.error("Erro ao gerar imagem:", error);
+                alert("Erro ao gerar imagem. Veja o console para mais detalhes.");
+                if (error.stack) {
+                    console.error(error.stack);
+                }
+            } finally {
+                // Fecha o popup de carregamento
+                loadingPopup.style.display = "none";
             }
-
-            // Desenhar o ícone de campeonato e a logo do campeonato centralizada
-           
-            ctx.drawImage(logoCampeonato, canvas.width / 2 - 150, 50, 300, 300); // Desenha a logo do campeonato
-
-            // Desenhar as logos dos times maiores e os nomes abaixo
-            ctx.drawImage(img1, 200, 350, 250, 250);
-            ctx.drawImage(img2, 630, 350, 250, 250);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 40px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(time1, 325, 650);
-            ctx.fillText(time2, 755, 650);
-
-            // Desenhar o ícone de calendário e a data/hora
-            ctx.drawImage(iconeCalendario, 100, 700, 50, 50);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 40px Arial";
-            ctx.textAlign = "left";
-            ctx.fillText(`${data}`, 170, 740);
-
-            // Desenhar o ícone de relógio e a hora
-            ctx.drawImage(iconeRelogio, 100, 780, 50, 50);
-            ctx.fillText(`${hora}h`, 170, 820);
-
-            // Card do local com cantos arredondados e texto centralizado
-            const cardX = 40;
-            const cardY = 850;
-            const cardWidth = canvas.width - 80;
-            const cardHeight = 100;
-            const borderRadius = 20;
-
-            ctx.fillStyle = "#010e2d";
-            ctx.roundRect(cardX, cardY, cardWidth, cardHeight, borderRadius);
-            ctx.fill();
-
-            const iconeMapaX = cardX + 20;
-            const iconeMapaY = 870;
-            ctx.drawImage(iconeMapa, iconeMapaX, iconeMapaY, 50, 60);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 35px Arial";
-            ctx.textAlign = "left";
-            ctx.fillText(local, iconeMapaX + 60, 910);
-
-            const imgFinal = canvas.toDataURL("image/png");
-            const link = document.createElement("a");
-            link.href = imgFinal;
-            link.download = `jogo_${time1}_vs_${time2}.png`;
-            link.click();
-
-        } catch (error) {
-            console.error("Erro ao gerar imagem:", error);
-            alert("Erro ao gerar imagem. Veja o console para mais detalhes.");
-            if (error.stack) {
-                console.error(error.stack);
-            }
-        } finally {
-            // Fecha o popup de carregamento
-            loadingPopup.style.display = "none";
         }
-    }
 
-    document.querySelectorAll('.compartilhar-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const time1 = this.getAttribute('data-time1');
-            const logo1 = this.getAttribute('data-logo1');
-            const time2 = this.getAttribute('data-time2');
-            const logo2 = this.getAttribute('data-logo2');
-            const data = this.getAttribute('data-data');
-            const local = this.getAttribute('data-local');
-            const hora = this.getAttribute('data-hora');
-            const campeonato = this.getAttribute('data-campeonato');
-            const logoCamp = this.getAttribute('data-logo-camp'); // Novo atributo para a logo do campeonato
-            gerarImagem(this, time1, logo1, time2, logo2, data, local, hora, campeonato, logoCamp);
+        document.querySelectorAll('.compartilhar-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const time1 = this.getAttribute('data-time1');
+                const logo1 = this.getAttribute('data-logo1');
+                const time2 = this.getAttribute('data-time2');
+                const logo2 = this.getAttribute('data-logo2');
+                const data = this.getAttribute('data-data');
+                const local = this.getAttribute('data-local');
+                const hora = this.getAttribute('data-hora');
+                const campeonato = this.getAttribute('data-campeonato');
+                gerarImagem(this, time1, logo1, time2, logo2, data, local, hora, campeonato);
+            });
         });
-    });
 
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
-            if (width < 2 * radius) radius = width / 2;
-            if (height < 2 * radius) radius = height / 2;
-            this.beginPath();
-            this.moveTo(x + radius, y);
-            this.arcTo(x + width, y, x + width, y + height, radius);
-            this.arcTo(x + width, y + height, x, y + height, radius);
-            this.arcTo(x, y + height, x, y, radius);
-            this.arcTo(x, y, x + width, y, radius);
-            this.closePath();
-            return this;
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+                return this;
+            }
         }
-    }
 
-    function toggleLogoInput(logoId) {
-        const urlInput = document.getElementById(`${logoId}_url`);
-        const fileInput = document.getElementById(`${logoId}_file`);
-        const urlRadio = document.querySelector(`input[name="${logoId}_type"][value="url"]`);
-        const fileRadio = document.querySelector(`input[name="${logoId}_type"][value="file"]`);
+        function toggleLogoInput(logoId) {
+            const urlInput = document.getElementById(`${logoId}_url`);
+            const fileInput = document.getElementById(`${logoId}_file`);
+            const urlRadio = document.querySelector(`input[name="${logoId}_type"][value="url"]`);
+            const fileRadio = document.querySelector(`input[name="${logoId}_type"][value="file"]`);
 
-        if (urlRadio.checked) {
-            urlInput.style.display = 'block';
-            urlInput.required = true;
-            fileInput.style.display = 'none';
-            fileInput.required = false;
-        } else {
-            urlInput.style.display = 'none';
-            urlInput.required = false;
-            fileInput.style.display = 'block';
-            fileInput.required = true;
+            if (urlRadio.checked) {
+                urlInput.style.display = 'block';
+                urlInput.required = true;
+                fileInput.style.display = 'none';
+                fileInput.required = false;
+            } else {
+                urlInput.style.display = 'none';
+                urlInput.required = false;
+                fileInput.style.display = 'block';
+                fileInput.required = true;
+            }
         }
-    }
 
-    // Inicializa os campos corretamente ao carregar a página
-    document.addEventListener('DOMContentLoaded', function() {
-        toggleLogoInput('logo1');
-        toggleLogoInput('logo2');
-    });
-</script>
+        // Inicializa os campos corretamente ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleLogoInput('logo1');
+            toggleLogoInput('logo2');
+        });
+    </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const jogoCardContainers = document.querySelectorAll('.jogo-card-container');

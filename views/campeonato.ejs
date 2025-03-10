@@ -17,8 +17,8 @@
             <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
         </div>
         <nav>
-            <a href="/agenda" class="admin-button" style="margin-bottom: 20px;">
-                <i class="fas fa-calendar-alt"></i> Ver Jogos
+            <a href="/agenda/campeonato/<%= campeonato.nome %>" class="admin-button" style="margin-bottom: 20px;">
+                <i class="fas fa-calendar-alt"></i> Tabela
             </a>
             <a href="/login" class="admin-button"><i class="fa-solid fa-user-lock"></i> Login</a>
         </nav>
@@ -26,7 +26,13 @@
 
     <div class="main-content">
         <div class="container">
-            <h2><i class="fa-solid fa-trophy"></i> <%= campeonato.nome %></h2>
+            <h2><div class="campeonato-item">
+                    <% if (campeonato.logoCamp) { %>
+                        <img src="/uploads/<%= campeonato.logoCamp.split('/').pop() %>" alt= "">
+                    <% } %>
+                    <%= campeonato.nome %>
+                    </div>
+                
             <% if (campeonato.tipoTabela === 'pontosCorridos') { %>
                 <div class="table-responsive">
                     <table>

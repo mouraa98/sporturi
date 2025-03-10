@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.2",
     "body-parser": "^1.20.3",
     "chart.js": "^4.4.8",
     "connect-flash": "^0.1.1",
@@ -20,7 +21,6 @@
     "fs": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
-    "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1"
   }
 }

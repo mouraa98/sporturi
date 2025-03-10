@@ -1,27 +1,40 @@
+/* Container principal */
+.container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #1f29377e; /* Azul escuro moderno */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 /* Lista de jogos */
 .jogos-lista {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 /* Card do jogo */
 .jogo-card {
     background: #2d3748;
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    position: relative;
 }
 
 /* Data */
 .data {
-    font-size: 14px;
+    font-size: 12px;
     color: #bbb;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    margin-top: 10px;
 }
 
-/* Times */
+/* Layout padrão para desktop */
 .times {
     display: flex;
     justify-content: center;
@@ -29,22 +42,66 @@
     gap: 10px;
     font-size: 16px;
     font-weight: bold;
+   
 }
 
+.time-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+
 .times img {
-    height: 30px;
-    width: 30px;
+    height: 40px;
+    width: 40px;
 }
 
 .versus {
-    font-size: 18px;
+    font-size: 30px;
     color: #ffcc00;
+    
+}
+
+/* Ajustes para dispositivos móveis */
+@media (max-width: 768px) {
+    .times {
+        flex-direction: row; /* Mantém os times lado a lado */
+        align-items: flex-start; /* Alinha os itens ao topo */
+        gap: 10px; /* Espaçamento entre os times */
+    }
+
+    .time-container {
+        flex-direction: column; /* Coloca logo e nome em coluna */
+        align-items: center;
+        gap: 5px; /* Espaçamento entre logo e nome */
+    }
+
+    .times img {
+        height: 50px; /* Aumenta o tamanho da logo para melhor visibilidade */
+        width: 50px;
+    }
+
+    .versus {
+        margin: 0 20px; /* Adiciona margem ao "VS" para separar os times */
+        align-self: center; /* Centraliza o "VS" verticalmente */
+    }
+
+    /* Truncamento do nome do time */
+    .time {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100px; /* Ajuste esse valor conforme necessário */
+        display: inline-block;
+    }
 }
 
 /* Detalhes */
 .detalhes {
-    margin-top: 10px;
-    font-size: 14px;
+    margin-top: 5px;
+    font-size: 12px;
     color: #ccc;
 }
 
@@ -62,7 +119,7 @@
     padding: 5px 10px;
     font-weight: bold;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 12px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
 }
 
@@ -77,25 +134,44 @@
     border-radius: 5px;
     font-size: 14px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s infinite; /* Aplicar a animação de pulse */
 }
 
+/* Animação de pulse */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Estilo para o selo "HOJE" */
 .hoje-card {
     background-color: green;
 }
 
+/* Estilo para o selo "AMANHÃ" */
 .amanha-card {
-    background-color: orange;
+    background-color: #FF9800;
 }
 
 /* Barra de pesquisa */
 .search-bar {
-    margin-bottom: 20px;
-    text-align: right; /* Alinha a barra de pesquisa à direita */
+    margin-bottom: 15px;
+    text-align: center;
 }
 
 #searchInput {
     width: 100%;
-    max-width: 300px; /* Define um tamanho fixo para a barra */
+    max-width: 100%;
     padding: 8px;
     font-size: 14px;
     border: 1px solid #ccc;
@@ -103,24 +179,7 @@
     outline: none;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
-
-    .jogo-card {
-        padding: 12px;
-    }
-
-    .times {
-        font-size: 14px;
-    }
-
-    .detalhes {
-        font-size: 12px;
-    }
-}
+/* Botão de compartilhamento */
 .compartilhar-btn {
     background-color: #007bff;
     color: white;
@@ -129,12 +188,14 @@
     border-radius: 5px;
     cursor: pointer;
     margin-top: 10px;
+    width: 100%;
 }
 
 .compartilhar-btn:hover {
     background-color: #0056b3;
 }
 
+/* Imagem de compartilhamento */
 .imagem-compartilhamento {
     display: none;
     position: fixed;
@@ -153,6 +214,7 @@
     max-height: 90%;
     border-radius: 10px;
 }
+
 /* Estilos do popup de carregamento */
 .popup-overlay {
     display: none;
@@ -194,4 +256,88 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Estilos para o status do jogo */
+.status-card {
+    position: relative;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-card.agendado { background-color: #4CAF50; }
+.status-card.cancelado { background-color: #F44336; }
+.status-card.adiado { background-color: #FF9800; }
+.status-card.finalizado { background-color: #0070d8; }
+
+/* Estilos para informações extras */
+.info-extra {
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #555;
+}
+
+.info-extra .rodada,
+.info-extra .fase {
+    display: block;
+}
+
+/* Estilos para o placar */
+.placar {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+/* Estilos para a fase do jogo */
+.fase-jogo {
+    position: relative;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    background-color: rgba(255, 166, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .jogo-card {
+        padding: 10px;
+    }
+
+    .times {
+        font-size: 14px;
+    }
+
+    .detalhes {
+        font-size: 12px;
+    }
+
+    .status-card {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 10px;
+        text-align: center;
+        width: 100%;
+    }
+
+    .data {
+        margin-top: 10px;
+    }
 }

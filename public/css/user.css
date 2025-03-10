@@ -202,3 +202,9 @@ footer i {
     padding: 10px;
     display: none; /* Inicialmente oculto */
 }
+.campeonato-logo {
+    width: 40px; /* Ajuste o tamanho conforme necessário */
+    height: 40px; /* Ajuste o tamanho conforme necessário */
+    margin-right: 10px; /* Espaçamento entre a logo e o nome do campeonato */
+    vertical-align: middle; /* Alinha a logo com o texto */
+}

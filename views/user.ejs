@@ -15,7 +15,7 @@
             <a href="/"><img src="/assets/logo.png" alt="Logo do Campeonato"></a>
         </div>
         <nav>
-            <a href="/user/agenda" class="admin-button"><i class="fas fa-calendar-alt"></i> Criar agenda</a>
+            <a href="/user/agenda" class="admin-button"><i class="fas fa-calendar-alt"></i> Criar Tabela</a>
             <a href="/logout" class="admin-button"><i class="fas fa-sign-out-alt"></i> Sair</a>
         </nav>
     </header>
@@ -45,7 +45,12 @@
                         <% if (campeonato) { %>
                             <li class="campeonato-item">
                                 <div class="campeonato-header" onclick="toggleCampeonato(<%= index %>)">
-                                    <h2><i class="fas fa-trophy"></i> <%= campeonato.nome %></h2>
+                                    <% if (campeonato.logoCamp) { %>
+                                        <img src="/uploads/<%= campeonato.logoCamp.split('/').pop() %>" alt="Logo" class="campeonato-logo">
+                                    <% } else { %>
+                                        <i class="fas fa-trophy campeonato-logo"></i>
+                                    <% } %>
+                                    <h2><%= campeonato.nome %></h2>
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
                                 <div class="campeonato-content" id="campeonato-<%= index %>">

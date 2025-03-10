@@ -8,6 +8,7 @@ const multer = require('multer');
 const cron = require('node-cron');
 const swaggerUi = require('swagger-ui-express');
 const flash = require('connect-flash');
+const axios = require('axios');
 const swaggerDocument = require('./swagger.json'); // Importa o arquivo de especificação
 const os = require('os');
 const app = express();
@@ -29,7 +30,17 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limite de 5MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas imagens são permitidas!'), false);
+        }
+    }
+});
 
 
 
@@ -293,46 +304,7 @@ const checkToken = (req, res, next) => {
     }
 };
 
-// Função para remover um agendamento e seu índice do usuário
-function removerAgendamento(agendaId) {
-    // Remove o agendamento do arquivo agendamentos.json
-    const agendamentos = readJSONFile(agendamentosFilePath);
-    const agendamentosAtualizados = agendamentos.filter((_, index) => index !== agendaId);
-    writeJSONFile(agendamentosFilePath, agendamentosAtualizados);
 
-    // Remove o índice do agendamento do array agendas no users.json
-    const users = readJSONFile(usersFilePath);
-    const usersAtualizados = users.map(user => {
-        if (user.agendas && user.agendas.includes(agendaId)) {
-            user.agendas = user.agendas.filter(id => id !== agendaId); // Remove o índice
-        }
-        return user;
-    });
-    writeJSONFile(usersFilePath, usersAtualizados);
-
-    console.log(`Agendamento ${agendaId} removido com sucesso.`);
-}
-
-function excluirAgendasPassadas() {
-    const hoje = new Date();
-    const agendamentos = readJSONFile(agendamentosFilePath);
-    const agendamentosAtualizados = agendamentos.filter((agendamento, index) => {
-        const dataAgendamento = new Date(`${agendamento.data}T${agendamento.hora}`);
-        if (dataAgendamento >= hoje) {
-            return true; // Mantém agendamentos futuros
-        } else {
-            removerAgendamento(index); // Remove agendamentos passados
-            return false;
-        }
-    });
-    writeJSONFile(agendamentosFilePath, agendamentosAtualizados);
-}
-
-// Agendar a tarefa para ser executada todos os dias à meia-noite
-cron.schedule('0 0 * * *', () => {
-    excluirAgendasPassadas();
-    console.log('Agendas passadas foram excluídas.');
-});
 // Rota para a documentação Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -413,8 +385,10 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
+// Rota para adicionar campeonato
+app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, upload.single('logoCamp'), (req, res) => {
     const { nome, responsavel, tipoTabela, grupos } = req.body;
+    const logoCamp = req.file ? '/uploads/' + req.file.filename : null; // Caminho da logo
 
     if (!nome || !responsavel || !tipoTabela) {
         return res.status(400).json({ error: "Todos os campos são obrigatórios." });
@@ -424,13 +398,14 @@ app.post('/admin/campeonatos/add', isAuthenticated, isSuperuser, (req, res) => {
     let users = readJSONFile(usersFilePath);
 
     const campeonatoId = campeonatos.length;
-    const novoCampeonato = { 
-        id: campeonatoId, 
-        nome, 
-        responsavel, 
-        tipoTabela, 
+    const novoCampeonato = {
+        id: campeonatoId,
+        nome,
+        responsavel,
+        tipoTabela,
+        logoCamp: logoCamp ? '/uploads/' + logoCamp : null, // Adiciona o caminho da logo
         times: tipoTabela === 'pontosCorridos' ? [] : null,
-        grupos: (tipoTabela === 'grupos' && grupos) ? JSON.parse(grupos) : null // Evita erro de JSON.parse(undefined)
+        grupos: (tipoTabela === 'grupos' && grupos) ? JSON.parse(grupos) : null
     };
 
     campeonatos.push(novoCampeonato);
@@ -479,15 +454,21 @@ app.post('/admin/campeonatos/update/:id', isAuthenticated, isSuperuser, (req, re
 });
 
 app.post('/admin/campeonatos/delete/:id', isAuthenticated, isSuperuser, (req, res) => {
-    const { id } = req.params;
-    if (campeonatos[id]) {
-        campeonatos.splice(id, 1);
+    const campeonatoId = parseInt(req.params.id); // Converte o ID para número inteiro
+
+    let campeonatos = readJSONFile(campeonatosFilePath);
+    let users = readJSONFile(usersFilePath);
+
+    const campeonatoIndex = campeonatos.findIndex(c => c.id === campeonatoId); // Busca pelo ID
+
+    if (campeonatoIndex !== -1) {
+        campeonatos.splice(campeonatoIndex, 1); // Remove pelo índice encontrado
 
         users.forEach(user => {
             if (user.campeonatos) {
-                user.campeonatos = user.campeonatos.filter(campeonatoId => campeonatoId !== parseInt(id));
+                user.campeonatos = user.campeonatos.filter(campeonatoId => campeonatoId !== campeonatoId);
                 user.campeonatos = user.campeonatos.map(campeonatoId => {
-                    if (campeonatoId > id) {
+                    if (campeonatoId > campeonatoId) {
                         return campeonatoId - 1;
                     }
                     return campeonatoId;
@@ -609,6 +590,7 @@ app.get('/user/campeonatos/:id/edit-time/grupos/:grupoIndex/:timeIndex', isAuthe
 
     res.render('edit-time', { campeonatoId: id, grupoIndex, timeIndex, time });
 });
+
 
 // Rota para editar times de pontos corridos
 app.get('/user/campeonatos/:id/edit-time/pontos-corridos/:timeIndex', isAuthenticated, (req, res) => {
@@ -920,11 +902,9 @@ app.post('/user/campeonatos/:id/delete-time/:timeIndex', isAuthenticated, (req, 
 app.get('/user/agenda', isAuthenticated, (req, res) => {
     const username = req.session.username;
 
-
- // Caminho dos arquivos JSON
+    // Caminho dos arquivos JSON
     const campeonatosFilePath = './data/campeonatos.json';  // Caminho do arquivo de campeonatos
     const agendamentosFilePath = './data/agendamentos.json';  // Caminho do arquivo de agendamentos
-    
 
     // Lê o arquivo campeonatos.json
     let campeonatos = readJSONFile(campeonatosFilePath);
@@ -945,15 +925,12 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
         }).filter(a => a !== undefined);
     }
 
-    
+    // Busca os campeonatos do usuário
+    const userCampeonatoIds = user.campeonatos || [];  // IDs de campeonatos do usuário
+    const userCampeonatos = userCampeonatoIds
+        .map(id => campeonatos.find(campeonato => campeonato.id === id)) // Busca pelo id do campeonato
+        .filter(campeonato => campeonato !== undefined);  // Filtra campeonatos que não existirem
 
- // Busca os campeonatos do usuário
- const userCampeonatoIds = user.campeonatos || [];  // IDs de campeonatos do usuário
- const userCampeonatos = userCampeonatoIds
-     .map(id => campeonatos.find(campeonato => campeonato.id === id)) // Busca pelo id do campeonato
-     .filter(campeonato => campeonato !== undefined);  // Filtra campeonatos que não existirem
-
-        
     // Passa as variáveis success e error para o template
     const success = req.session.success || null;
     const error = req.session.error || null;
@@ -970,9 +947,27 @@ app.get('/user/agenda', isAuthenticated, (req, res) => {
 
 
 
+
+
 // Rota para agendar jogos
 app.post('/user/agendar-jogo', isAuthenticated, upload.fields([{ name: 'logo1_file', maxCount: 1 }, { name: 'logo2_file', maxCount: 1 }]), (req, res) => {
-    const { logo1_url, logo2_url, time1, time2, camp, data, hora, local } = req.body;
+    const { 
+        logo1_url, 
+        logo2_url, 
+        time1, 
+        time2, 
+        camp, 
+        data, 
+        hora, 
+        local, 
+        status, 
+        placarAtivo, 
+        golsTime1, 
+        golsTime2, 
+        rodada, 
+        fase 
+    } = req.body;
+
     const username = req.session.username;
 
     // Verifica se os campos obrigatórios estão preenchidos
@@ -994,7 +989,7 @@ app.post('/user/agendar-jogo', isAuthenticated, upload.fields([{ name: 'logo1_fi
     // Lê os agendamentos existentes
     const agendamentos = readJSONFile(agendamentosFilePath);
 
-    // Cria o novo jogo
+    // Cria o novo jogo com os novos campos
     const novoJogo = {
         id: agendamentos.length, // O ID é o índice atual do array, iniciando de 0
         logo1,
@@ -1005,6 +1000,12 @@ app.post('/user/agendar-jogo', isAuthenticated, upload.fields([{ name: 'logo1_fi
         data,
         hora,
         local,
+        status: status || 'agendado', // Define o status padrão como "agendado"
+        placarAtivo: placarAtivo === 'on', // Converte para booleano
+        golsTime1: placarAtivo === 'on' ? parseInt(golsTime1) || 0 : null, // Define os gols se o placar estiver ativo
+        golsTime2: placarAtivo === 'on' ? parseInt(golsTime2) || 0 : null,
+        rodada,
+        fase,
         responsavel: username // Define o responsável como o usuário logado
     };
 
@@ -1027,66 +1028,142 @@ app.post('/user/agendar-jogo', isAuthenticated, upload.fields([{ name: 'logo1_fi
     res.redirect('/user/agenda');
 });
 
-// Rota para editar agendamento
+
+
+// Rota para deletar um jogo agendado
+app.get('/user/agenda/deletar/:id', (req, res) => {
+    const jogoId = parseInt(req.params.id);
+
+    // Lógica para ler os dados dos agendamentos do arquivo JSON
+    const caminhoArquivoAgendamentos = path.join(__dirname, 'data', 'agendamentos.json');
+    fs.readFile(caminhoArquivoAgendamentos, 'utf8', (err, dataAgendamentos) => {
+        if (err) {
+            console.error('Erro ao ler o arquivo JSON de agendamentos:', err);
+            return res.status(500).send('Erro ao carregar os dados');
+        }
+
+        let agendamentos = JSON.parse(dataAgendamentos);
+
+        // Encontrar o índice do jogo a ser deletado
+        const jogoIndex = agendamentos.findIndex(jogo => jogo.id === jogoId);
+
+        if (jogoIndex === -1) {
+            return res.status(404).send('Jogo não encontrado');
+        }
+
+        agendamentos.splice(jogoIndex, 1); // Remove o jogo do array
+
+        // Escrever os dados atualizados de volta para o arquivo JSON de agendamentos
+        fs.writeFile(caminhoArquivoAgendamentos, JSON.stringify(agendamentos, null, 2), (err) => {
+            if (err) {
+                console.error('Erro ao escrever no arquivo JSON de agendamentos:', err);
+                return res.status(500).send('Erro ao salvar os dados');
+            }
+
+            // Lógica para ler os dados dos usuários do arquivo JSON
+            const caminhoArquivoUsuarios = path.join(__dirname, 'data', 'users.json');
+            fs.readFile(caminhoArquivoUsuarios, 'utf8', (err, dataUsuarios) => {
+                if (err) {
+                    console.error('Erro ao ler o arquivo JSON de usuários:', err);
+                    return res.status(500).send('Erro ao carregar os dados');
+                }
+
+                let usuarios = JSON.parse(dataUsuarios);
+
+                // Iterar sobre os usuários e remover o jogo agendado
+                usuarios.forEach(usuario => {
+                    if (usuario.agendas) {
+                        usuario.agendas = usuario.agendas.filter(idJogo => idJogo !== jogoId);
+                    }
+                });
+
+                // Escrever os dados atualizados dos usuários de volta para o arquivo JSON
+                fs.writeFile(caminhoArquivoUsuarios, JSON.stringify(usuarios, null, 2), (err) => {
+                    if (err) {
+                        console.error('Erro ao escrever no arquivo JSON de usuários:', err);
+                        return res.status(500).send('Erro ao salvar os dados');
+                    }
+
+                    // Redirecionar de volta para a página da agenda
+                    res.redirect('/user/agenda');
+                });
+            });
+        });
+    });
+});
+
+// Rota para editar agendamento (GET)
 app.get('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
-    const { id } = req.params;
-    const username = req.session.username;
+    const jogoId = parseInt(req.params.id); // Obtém o ID do agendamento da URL
+    const username = req.session.username; // Obtém o usuário logado
 
-    console.log(`Tentativa de editar agendamento com ID: ${id}`);
-
+    // Lê os arquivos JSON
     const users = readJSONFile(usersFilePath);
-    const user = users.find(u => u.username === username);
+    const agendamentos = readJSONFile(agendamentosFilePath);
+    const campeonatos = readJSONFile(campeonatosFilePath);
 
-    if (user && user.agendas && user.agendas.includes(Number(id))) {
-        const agendamentos = readJSONFile(agendamentosFilePath);
-        const agendamento = agendamentos[id];
+    // Verifica se o usuário tem permissão para editar o agendamento
+    const user = users.find(u => u.username === username);
+    if (user && user.agendas && user.agendas.includes(jogoId)) {
+        const agendamento = agendamentos.find(jogo => jogo.id === jogoId); // Encontra o agendamento pelo ID
 
         if (agendamento) {
-            console.log('Agendamento encontrado:', agendamento);
+            // Filtra os campeonatos do usuário
+            const userCampeonatos = campeonatos.filter(campeonato => 
+                user.campeonatos.includes(campeonato.id)
+            );
 
-            const campeonatos = readJSONFile(campeonatosFilePath);
-            const userCampeonatos = campeonatos.filter(campeonato => user.campeonatos.includes(campeonato.id));
-
-            // Passando o id do agendamento para a view
+            // Renderiza a página de edição com os dados do agendamento
             res.render('editar-agenda', {
                 campeonatos: userCampeonatos,
                 agendamento: agendamento,
-                id: id,  // Passando o id para a view
-                success: req.flash('success'),
-                error: req.flash('error')
+                id: jogoId, // Passa o ID para o template
+                success: req.session.success,
+                error: req.session.error
             });
         } else {
-            console.log('Agendamento não encontrado.');
+            // Agendamento não encontrado
             res.status(404).send('Agendamento não encontrado.');
         }
     } else {
-        console.log('Acesso negado: usuário não tem permissão.');
+        // Usuário não tem permissão
         res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
     }
 });
 
-// Rota para atualizar um agendamento
+// Rota para editar agendamento (POST)
 app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
-    const { id } = req.params;
-    const { logo1, time1, logo2, time2, camp, data, hora, local } = req.body;
+    const jogoId = parseInt(req.params.id);
+    const { 
+        logo1, 
+        time1, 
+        logo2, 
+        time2, 
+        camp, 
+        data, 
+        hora, 
+        local, 
+        status, 
+        placarAtivo, 
+        golsTime1, 
+        golsTime2, 
+        rodada, 
+        fase 
+    } = req.body;
+
     const username = req.session.username;
 
     const users = readJSONFile(usersFilePath);
     const user = users.find(u => u.username === username);
 
-    if (user && user.agendas && user.agendas.includes(Number(id))) {
+    if (user && user.agendas && user.agendas.includes(jogoId)) {
         const agendamentos = readJSONFile(agendamentosFilePath);
-        const agendamento = agendamentos[id];
+        const agendamentoIndex = agendamentos.findIndex(jogo => jogo.id === jogoId);
 
-        if (agendamento) {
-            // Cancela o cron job antigo, se existir
-            if (cronJobs[id]) {
-                cronJobs[id].stop();
-                console.log(`Tarefa agendada anterior para o agendamento ${id} foi cancelada.`);
-            }
-
+        if (agendamentoIndex !== -1) {
             // Atualiza os dados do agendamento
-            agendamentos[id] = {
+            agendamentos[agendamentoIndex] = {
+                ...agendamentos[agendamentoIndex],
                 logo1,
                 time1,
                 logo2,
@@ -1095,29 +1172,26 @@ app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
                 data,
                 hora,
                 local,
-                responsavel: username
+                status: status || 'agendado',
+                placarAtivo: placarAtivo === 'on',
+                golsTime1: placarAtivo === 'on' ? parseInt(golsTime1) || 0 : null,
+                golsTime2: placarAtivo === 'on' ? parseInt(golsTime2) || 0 : null,
+                rodada,
+                fase,
+                responsavel: username,
+                updatedAt: new Date().toISOString() // Atualiza o campo updatedAt
             };
 
-            // Salva as alterações no JSON
+            // Salva as alterações no arquivo JSON
             writeJSONFile(agendamentosFilePath, agendamentos);
 
-            // Agenda a nova remoção com base na nova data e hora
-            const dataHoraJogo = new Date(`${data}T${hora}`);
-            const cronExpression = `${dataHoraJogo.getMinutes()} ${dataHoraJogo.getHours()} ${dataHoraJogo.getDate()} ${dataHoraJogo.getMonth() + 1} *`;
-
-            cronJobs[id] = cron.schedule(cronExpression, () => {
-                removerAgendamento(Number(id));
-                console.log(`Jogo removido: ${time1} vs ${time2} em ${data} ${hora}`);
-                delete cronJobs[id]; // Remove a referência após execução
-            });
-
-            req.session.success = 'Agendamento atualizado com sucesso!';
-            return res.redirect('/user/agenda');
+            // Redireciona para a página de agenda
+            res.redirect('/user/agenda');
         } else {
-            return res.status(404).send('Agendamento não encontrado.');
+            res.status(404).send('Agendamento não encontrado.');
         }
     } else {
-        return res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
+        res.status(403).send('Acesso negado: você não tem permissão para editar este agendamento.');
     }
 });
 
@@ -1125,8 +1199,60 @@ app.post('/user/agenda/editar/:id', isAuthenticated, (req, res) => {
 
 
 app.get('/agenda', (req, res) => {
-    const agenda = readJSONFile(agendamentosFilePath); // Lê os agendamentos do arquivo JSON
-    res.render('agenda', { agenda }); // Passa os agendamentos para o template
+         const agendamentos = readJSONFile(agendamentosFilePath);
+        const campeonatos = readJSONFile(campeonatosFilePath);
+    
+        const agenda = agendamentos.map(jogo => {
+            const campeonato = campeonatos.find(camp => camp.nome === jogo.camp);
+            return {
+                ...jogo,
+                logoCamp: campeonato ? campeonato.logoCamp : null
+            };
+        });
+
+    // Ordena os agendamentos por campeonato e horário
+    agenda.sort((a, b) => {
+        if (a.camp < b.camp) return -1;
+        if (a.camp > b.camp) return 1;
+
+        // Ordena por horário se os campeonatos forem iguais
+        let horaA = parseInt(a.hora.replace('h', ''));
+        let horaB = parseInt(b.hora.replace('h', ''));
+        return horaA - horaB;
+    });
+
+    res.render('agenda', { agenda });
+});
+
+app.get('/agenda/campeonato/:id', (req, res) => {
+    const campeonatoId = req.params.id;
+    const agendamentos = readJSONFile(agendamentosFilePath);
+    const campeonatos = readJSONFile(campeonatosFilePath);
+
+    let agenda = agendamentos.map(jogo => { // Usando let aqui
+        const campeonato = campeonatos.find(camp => camp.nome === jogo.camp);
+        return {
+            ...jogo,
+            logoCamp: campeonato ? campeonato.logoCamp : null
+        };
+    });
+
+    // Ordena os agendamentos por campeonato e horário
+    agenda.sort((a, b) => {
+        if (a.camp < b.camp) return -1;
+        if (a.camp > b.camp) return 1;
+
+        // Ordena por horário se os campeonatos forem iguais
+        let horaA = parseInt(a.hora.replace('h', ''));
+        let horaB = parseInt(b.hora.replace('h', ''));
+        return horaA - horaB;
+    });
+
+    agenda = agenda.filter(jogo => {
+        return String(jogo.camp) === campeonatoId; // Converte ambos para string
+    });
+
+    res.render('agenda', { agenda });
 });
 
 // API Routes
@@ -1612,6 +1738,17 @@ app.get('/campeonato/:nome', (req, res) => {
 
         if (!campeonato) {
             return res.status(404).send('Campeonato não encontrado');
+        }
+
+        console.log('Campeonato encontrado:', campeonato); // Log para depuração
+
+        // Verificação e correção de campeonato.grupos
+        if (campeonato.tipoTabela === 'grupos' && !Array.isArray(campeonato.grupos)) {
+            console.error(`Campeonato ${nomeCampeonato} tem tipoTabela 'grupos', mas grupos não é um array.`);
+            campeonato.grupos = []; // Define grupos como um array vazio para evitar o erro
+            console.log('Grupos corrigidos:', campeonato.grupos); // Log para depuração
+        } else if (campeonato.tipoTabela === 'grupos') {
+            console.log('Grupos do campeonato:', campeonato.grupos); // Log para depuração
         }
 
         res.render('campeonato', {
